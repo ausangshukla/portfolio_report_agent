@@ -69,14 +69,23 @@ class GraphGeneratorNode:
         tabular_data = state.get("tabular_data", {}) # Get tabular data if available
         current_section_references = state.get("current_section_references", []) # Get references from writer
 
+        print(f"--- Debug: Input documents_content length: {len(documents_content)} ---")
+        print(f"--- Debug: Input current_section_content length: {len(current_section_content)} ---")
+        print(f"--- Debug: Input tabular_data: {tabular_data} ---")
+
         try:
-            graph_spec = self.chain.invoke({
+            # Temporarily modify the chain to get raw LLM output before parsing
+            raw_chain = self.prompt | self.llm
+            raw_llm_output = raw_chain.invoke({
                 "documents": documents_content,
                 "current_section": current_section_title,
                 "current_section_content": current_section_content,
                 "tabular_data": tabular_data
             })
-            print(f"--- Graph spec generated for '{current_section_title}' ---")
+            print(f"--- Debug: Raw LLM Output: {raw_llm_output} ---")
+
+            graph_spec = self.parser.parse(raw_llm_output.content) # Parse the raw output
+            print(f"--- Graph spec generated for '{current_section_title}': {graph_spec} ---")
             
             # Update the current section in completed_sections with the new graph spec
             # Create the new completed section entry
@@ -86,12 +95,16 @@ class GraphGeneratorNode:
                 "graph_spec": graph_spec,
                 "references": current_section_references # Use references from writer
             }
+            print(f"--- Debug: New completed section entry: {new_completed_section} ---")
 
             # Append the new completed section to the list
             completed_sections = state.get("completed_sections", []) + [new_completed_section]
+            print(f"--- Debug: Completed sections after update: {completed_sections} ---")
 
             return {"completed_sections": completed_sections}
 
         except Exception as e:
             print(f"Error generating graph for section '{current_section_title}': {e}")
+            import traceback
+            traceback.print_exc() # Print full traceback for more details
             return {} # Return empty dict to avoid breaking the graph

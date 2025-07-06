@@ -41,7 +41,7 @@ def main():
     # Define the sections to analyze
     sections_to_analyze = [
         "Overview",
-        "Financial Review",
+        # "Financial Review",
         # "Risks",
         # "Strategic Insights",
         # "Competition" # This section might not have direct content in sample, testing robustness
