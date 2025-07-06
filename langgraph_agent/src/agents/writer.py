@@ -57,9 +57,10 @@ class WriterNode:
                             rewritten section content and references.
         """
         current_section_title = state.get("current_section")
-        completed_sections = state.get("completed_sections", [])
         critique = state.get("critique")
         documents = state.get("documents")
+        original_content = state.get("current_section_content", "") # Get content from current_section_content
+        original_references = state.get("current_section_references", []) # Get references from current_section_references
 
         if not current_section_title:
             raise ValueError("No current section specified in the agent state.")
@@ -70,15 +71,6 @@ class WriterNode:
                     BaseMessage(content=f"WriterNode: No critique for '{current_section_title}'. Skipping rewrite.", type="info")
                 ]
             }
-
-        # Find the content and references of the current section
-        original_content = ""
-        original_references = []
-        for section in completed_sections:
-            if section.get("section") == current_section_title:
-                original_content = section.get("content", "")
-                original_references = section.get("references", [])
-                break
 
         if not original_content:
             print(f"WriterNode: No original content found for section '{current_section_title}'. Cannot rewrite.")

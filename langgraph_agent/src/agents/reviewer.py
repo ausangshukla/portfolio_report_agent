@@ -55,14 +55,8 @@ class ReviewerNode:
             Dict[str, Any]: A dictionary containing the updated state with the critique.
         """
         current_section_title = state.get("current_section")
-        completed_sections = state.get("completed_sections", [])
-
-        # Find the content of the current section
-        current_section_content = ""
-        for section in completed_sections:
-            if section.get("section") == current_section_title:
-                current_section_content = section.get("content", "")
-                break
+        current_section_content = state.get("current_section_content", "") # Get content directly from state
+        current_section_references = state.get("current_section_references", []) # Get references directly from state
 
         if not current_section_title or not current_section_content:
             print(f"ReviewerNode: No content found for section '{current_section_title}' to review. Skipping review.")
@@ -89,9 +83,11 @@ class ReviewerNode:
                 "search_terms": critique_result.get("search_terms", [])
             }
 
-            # Update the state with the critique
+            # Update the state with the critique and pass through content/references
             return {
                 "critique": critique,
+                "current_section_content": current_section_content, # Preserve content
+                "current_section_references": current_section_references, # Preserve references
                 "messages": state.get("messages", []) + [
                     BaseMessage(content=f"ReviewerNode: Critique for '{current_section_title}' generated.", type="tool_output")
                 ]

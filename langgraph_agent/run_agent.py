@@ -27,7 +27,7 @@ def main():
     # Define the path to your portfolio documents
     # For demonstration, we'll use a dummy folder.
     # In a real scenario, this would be your actual data folder.
-    data_folder = "data" # Assuming data folder is within langgraph_agent
+    data_folder = "langgraph_agent/data" # Corrected path to data folder
 
     # Create a dummy data folder and some files for testing if they don't exist
     os.makedirs(data_folder, exist_ok=True)
@@ -41,9 +41,9 @@ def main():
     # Define the sections to analyze
     sections_to_analyze = [
         "Overview",
-        # "Financial Review",
+        "Strategic Insights",
+        "Financial Review",
         # "Risks",
-        # "Strategic Insights",
         # "Competition" # This section might not have direct content in sample, testing robustness
     ]
 
@@ -77,6 +77,7 @@ def main():
         
         first_section = True
         for section_report in agent_graph.run_analysis(llm, loaded_docs, sections_to_analyze):
+            print(f"--- Debug: Section report yielded to run_agent.py: {section_report} ---")
             if not first_section:
                 f.write(",\n") # Add comma for subsequent sections
             

@@ -26,6 +26,8 @@ class AgentState(TypedDict):
 -------
         messages (List[BaseMessage]): A list of messages exchanged during the agent's
                                        execution, useful for debugging and tracing.
+        current_section_content (Optional[str]): The content of the current section being processed.
+        current_section_references (List[Dict[str, Any]]): References for the current section.
         tabular_data (Optional[Dict[str, Any]]): Stores generated tabular data for the current section.
         graph_spec (Optional[Dict[str, Any]]): Stores generated graph specifications for the current section.
     """
@@ -35,6 +37,8 @@ class AgentState(TypedDict):
     current_section: Optional[str]
     loop_count: int
     critique: Optional[Dict[str, Any]]
+    current_section_content: Optional[str]
+    current_section_references: List[Dict[str, Any]]
     tabular_data: Optional[Dict[str, Any]]
     graph_spec: Optional[Dict[str, Any]]
     messages: List[BaseMessage]

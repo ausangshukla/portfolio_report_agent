@@ -81,8 +81,8 @@ class PortfolioAnalysisGraph:
             {
                 # If the decider returns "rewrite", transition to the "writer" node.
                 "rewrite": "writer",
-                # If the decider returns "next_section", the current section's processing ends (END).
-                "next_section": END
+                # If the decider returns "table_generation", transition to the "table_generator" node.
+                "table_generation": "table_generator"
             }
         )
 
@@ -216,27 +216,35 @@ class PortfolioAnalysisGraph:
             current_section_state["loop_count"] = 0 # Reset loop count for each new section.
 
             # Run the graph for the current section
-            for s in self.graph.stream(current_section_state):
-                current_section_state.update(s)
+            final_state_after_stream = None
+            for i, s in enumerate(self.graph.stream(current_section_state)):
+                # LangGraph stream yields a dictionary where the key is the node name
+                # and the value is the state update from that node.
+                # We need to unwrap this to get the actual state update.
+                node_output = list(s.values())[0]
+                current_section_state.update(node_output)
+                final_state_after_stream = current_section_state # Keep track of the final state
+                print(f"--- Debug: State after stream step {i} for '{section_title}': {current_section_state} ---")
+
+            print(f"--- Debug: Final state after stream for '{section_title}': {final_state_after_stream} ---")
 
             # After the graph for a single section completes (reaches END),
-            # extract the final version of that section from `completed_sections`
-            # and yield it.
-            found_section = None
-            for section_item in current_section_state["completed_sections"]:
-                if section_item["section"] == section_title:
-                    print(f"--- Finalized section '{section_title}' ---")
-                    yield section_item
-                    found_section = section_item
-                    break
+            # consolidate all relevant data for the current section and add it to completed_sections.
+            finalized_section = {
+                "section": section_title,
+                "content": final_state_after_stream.get("current_section_content", ""),
+                "references": final_state_after_stream.get("current_section_references", []),
+                "tabular_data": final_state_after_stream.get("tabular_data", None),
+                "graph_spec": final_state_after_stream.get("graph_spec", None)
+            }
             
-            # Update the overall `initial_state` with the finalized section if found.
+            print(f"--- Finalized section '{section_title}' ---")
+            yield finalized_section
+            
+            # Update the overall `initial_state` with the finalized section.
             # This is crucial for subsequent sections to have access to previously
             # completed sections if needed for context.
-            if found_section:
-                initial_state["completed_sections"].append(found_section)
-            else:
-                print(f"Warning: No finalized content found for section '{section_title}'.")
+            initial_state["completed_sections"].append(finalized_section)
 
         print("\n--- Portfolio Analysis Completed ---")
 

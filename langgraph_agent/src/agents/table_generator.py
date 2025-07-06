@@ -63,28 +63,15 @@ class TableGeneratorNode:
             # For now, let's add it to a new 'tabular_data' field in the state.
             # We might want to integrate this into 'completed_sections' later.
             
-            # Update the current section in completed_sections with the new tabular data
-            completed_sections = state.get("completed_sections", [])
-            updated_completed_sections = []
-            found = False
-            for section in completed_sections:
-                if section.get("section") == current_section_title:
-                    section["tabular_data"] = tabular_data
-                    found = True
-                updated_completed_sections.append(section)
-            
-            if not found:
-                # This case should ideally not happen if the flow is correct,
-                # but as a fallback, create a new entry.
-                updated_completed_sections.append({
-                    "section": current_section_title,
-                    "content": current_section_content,
-                    "tabular_data": tabular_data,
-                    "references": [] # Assuming references are handled by writer/extractor
-                })
-
-            return {"completed_sections": updated_completed_sections}
+            # Return the tabular_data and ensure other relevant state variables are passed through
+            return {
+                "tabular_data": tabular_data,
+                "current_section_content": current_section_content, # Preserve content
+                "current_section_references": state.get("current_section_references", []) # Preserve references
+            }
 
         except Exception as e:
             print(f"Error generating table for section '{current_section_title}': {e}")
+            import traceback
+            traceback.print_exc()
             return {} # Return empty dict to avoid breaking the graph

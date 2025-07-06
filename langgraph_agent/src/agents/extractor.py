@@ -75,24 +75,29 @@ class ExtractorNode:
             }
             print(f"ExtractorNode: Invoking LLM with input for '{current_section}': {extraction_input['section_title']}")
             
-            extraction_result = self.chain.invoke(extraction_input)
-            print(f"ExtractorNode: Raw LLM output for '{current_section}': {extraction_result}") # Log raw LLM output
+            raw_llm_output = self.llm.invoke(self.prompt.format_messages(**extraction_input))
+            print(f"ExtractorNode: Raw LLM output for '{current_section}': {raw_llm_output}") # Log raw LLM output
+
+            # Clean the raw LLM output by removing markdown code block delimiters
+            cleaned_output = raw_llm_output.content.strip()
+            if cleaned_output.startswith("```json") and cleaned_output.endswith("```"):
+                cleaned_output = cleaned_output[len("```json"): -len("```")].strip()
+            elif cleaned_output.startswith("```") and cleaned_output.endswith("```"):
+                cleaned_output = cleaned_output[len("```"): -len("```")].strip()
+
+            print(f"--- Debug: Cleaned LLM output for ExtractorNode: {cleaned_output} ---") # New debug print
+
+            # Parse the cleaned output
+            extraction_result = self.parser.parse(cleaned_output)
 
             # Ensure the output matches the expected JSON structure
             content = extraction_result.get("content", "")
             references = extraction_result.get("references", [])
 
-            # Update the completed_sections with the new draft
-            updated_completed_sections = state.get("completed_sections", [])
-            updated_completed_sections.append({
-                "section": current_section,
-                "content": content,
-                "references": references
-            })
-
-            # Update the state
+            # Update the state with the extracted content and references
             return {
-                "completed_sections": updated_completed_sections,
+                "current_section_content": content,
+                "current_section_references": references,
                 "messages": state.get("messages", []) + [
                     BaseMessage(content=f"ExtractorNode: Initial draft for '{current_section}' created.", type="tool_output")
                 ]

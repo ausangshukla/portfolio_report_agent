@@ -90,21 +90,13 @@ class GraphGeneratorNode:
             print(f"--- Debug: Type of graph_spec: {type(graph_spec)} ---")
             print(f"--- Graph spec generated for '{current_section_title}': {graph_spec} ---")
             
-            # Update the current section in completed_sections with the new graph spec
-            # Create the new completed section entry
-            new_completed_section = {
-                "section": current_section_title,
-                "content": current_section_content,
+            # Return the graph_spec and ensure other relevant state variables are passed through
+            return {
                 "graph_spec": graph_spec,
-                "references": current_section_references # Use references from writer
+                "current_section_content": current_section_content, # Preserve content
+                "current_section_references": current_section_references, # Preserve references
+                "tabular_data": tabular_data # Preserve tabular data
             }
-            print(f"--- Debug: New completed section entry: {new_completed_section} ---")
-
-            # Append the new completed section to the list
-            completed_sections = state.get("completed_sections", []) + [new_completed_section]
-            print(f"--- Debug: Completed sections after update: {completed_sections} ---")
-
-            return {"completed_sections": completed_sections}
 
         except Exception as e:
             print(f"Error generating graph for section '{current_section_title}': {e}")
