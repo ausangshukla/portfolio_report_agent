@@ -38,6 +38,9 @@ class WriterNode:
 
              Output your response as a JSON object with one key:
              'content': The rewritten and improved content for the section, as plain text without any markdown or special formatting or tables.
+             Your output MUST be ONLY the JSON object, with no other text or markdown outside of it.
+             Example:
+             {{"content": "This is the rewritten content."}}
              """),
             ("user", "Section Title: {section_title}\n{section_instruction}")
         ])
@@ -96,7 +99,16 @@ class WriterNode:
                 "new_information": new_information,
                 "section_instruction": current_section_instruction
             }
-            rewrite_result = self.chain.invoke(rewrite_input)
+            raw_llm_output = self.llm.invoke(self.prompt.format_messages(**rewrite_input))
+            
+            # Clean the raw LLM output by removing markdown code block delimiters
+            cleaned_output = raw_llm_output.content.strip()
+            if cleaned_output.startswith("```json") and cleaned_output.endswith("```"):
+                cleaned_output = cleaned_output[len("```json"): -len("```")].strip()
+            elif cleaned_output.startswith("```") and cleaned_output.endswith("```"):
+                cleaned_output = cleaned_output[len("```"): -len("```")].strip()
+
+            rewrite_result = self.parser.parse(cleaned_output)
 
             # Ensure the output matches the expected JSON structure
             rewritten_content = rewrite_result.get("content", "")

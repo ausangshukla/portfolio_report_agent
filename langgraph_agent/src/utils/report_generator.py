@@ -35,16 +35,161 @@ def generate_html_report(json_report_path: str, output_html_path: str):
     <title>Portfolio Analysis Report</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; color: #333; }
-        .container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1, h2, h3 { color: #0056b3; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .chart-container { position: relative; height: 400px; width: 100%; margin-bottom: 20px; }
-        .references { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .references ul { list-style: none; padding: 0; }
-        .references li { margin-bottom: 5px; }
+        :root {
+            --primary-color: #2c3e50; /* Dark blue-gray for headings */
+            --secondary-color: #34495e; /* Slightly lighter dark blue-gray */
+            --accent-color: #3498db; /* Blue for highlights */
+            --text-color: #333;
+            --bg-color: #f8f9fa; /* Light gray background */
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --shadow-light: rgba(0, 0, 0, 0.05);
+            --shadow-medium: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: var(--card-bg);
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px var(--shadow-medium);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--primary-color);
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            font-weight: 600;
+        }
+
+        h1 { font-size: 2.5em; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        h2 { font-size: 2em; color: var(--secondary-color); }
+        h3 { font-size: 1.5em; color: var(--accent-color); }
+
+        p {
+            margin-bottom: 1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            border-radius: 8px;
+            overflow: hidden; /* Ensures rounded corners apply to inner elements */
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2; /* Lighter shade for even rows */
+        }
+
+        tr:hover {
+            background-color: #e9ecef; /* Hover effect for rows */
+        }
+
+        .chart-container {
+            position: relative;
+            height: 450px; /* Slightly taller charts */
+            width: 100%;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px var(--shadow-light);
+        }
+
+        .references {
+            margin-top: 40px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 25px;
+            background-color: #f0f3f6;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .references h3 {
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+
+        .references ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .references li {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        /* Markdown specific styles */
+        div pre {
+            background-color: #e9ecef;
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin-bottom: 1.5em;
+        }
+
+        div code {
+            background-color: #ffe0b2; /* Light orange for inline code */
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        div blockquote {
+            border-left: 4px solid var(--accent-color);
+            margin: 1.5em 0;
+            padding: 0.5em 15px;
+            background-color: #eaf4fa;
+            color: #555;
+            font-style: italic;
+        }
+
+        div ul, div ol {
+            margin-bottom: 1em;
+            padding-left: 25px;
+        }
+
+        div ul li, div ol li {
+            margin-bottom: 0.5em;
+        }
     </style>
 </head>
 <body>

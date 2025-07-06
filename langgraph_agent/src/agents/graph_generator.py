@@ -108,8 +108,6 @@ class GraphGeneratorNode:
                 # Return the list of graph_specs and ensure other relevant state variables are passed through
                 return {
                     "graph_specs": graph_specs, # Changed to graph_specs (plural)
-                    "current_section_content": current_section_content, # Preserve content
-                    "tabular_data": tabular_data
                 }
             except Exception as parse_error:
                 print(f"--- Error parsing LLM output for graph generation: {parse_error} ---")
@@ -118,8 +116,6 @@ class GraphGeneratorNode:
                 traceback.print_exc() # Print full traceback for parsing error
                 return {
                     "graph_specs": [], # Return empty list if parsing fails
-                    "current_section_content": current_section_content,
-                    "tabular_data": tabular_data
                 }
  
         except Exception as e:

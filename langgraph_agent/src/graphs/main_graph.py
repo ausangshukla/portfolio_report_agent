@@ -99,9 +99,6 @@ class PortfolioAnalysisGraph:
             }
         )
 
-        # After the "writer" node runs, transition to the "table_generator" node.
-        workflow.add_edge("writer", "table_generator")
-
         # After the "table_generator" node runs, transition to the "graph_generator" node.
         workflow.add_edge("table_generator", "graph_generator")
 
