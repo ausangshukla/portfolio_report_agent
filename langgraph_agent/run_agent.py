@@ -30,12 +30,12 @@ def main():
 
     # Create a dummy data folder and some files for testing if they don't exist
     os.makedirs(data_folder, exist_ok=True)
-    if not os.path.exists(os.path.join(data_folder, "sample_report.txt")):
-        with open(os.path.join(data_folder, "sample_report.txt"), "w") as f:
-            f.write("This is a sample annual report for Company X. Revenue was $100M in 2023. Profit was $20M. Key risks include market volatility. Strategic insights: focus on innovation.")
-    if not os.path.exists(os.path.join(data_folder, "sample_kpis.csv")):
-        with open(os.path.join(data_folder, "sample_kpis.csv"), "w") as f:
-            f.write("KPI,Value\nRevenue,100M\nProfit,20M\nCustomers,500K")
+    # if not os.path.exists(os.path.join(data_folder, "sample_report.txt")):
+    #     with open(os.path.join(data_folder, "sample_report.txt"), "w") as f:
+    #         f.write("This is a sample annual report for Company X. Revenue was $100M in 2023. Profit was $20M. Key risks include market volatility. Strategic insights: focus on innovation.")
+    # if not os.path.exists(os.path.join(data_folder, "sample_kpis.csv")):
+    #     with open(os.path.join(data_folder, "sample_kpis.csv"), "w") as f:
+    #         f.write("KPI,Value\nRevenue,100M\nProfit,20M\nCustomers,500K")
 
     # Define the sections to analyze
     sections_to_analyze = [
