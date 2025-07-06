@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI # Example LLM
 from src.graphs.main_graph import PortfolioAnalysisGraph
 from src.tools.document_loader import load_documents_from_folder
-from src.utils.report_generator import generate_word_report
+from src.utils.report_generator import generate_html_report
 
 def main():
     """
@@ -27,7 +27,7 @@ def main():
     # Define the path to your portfolio documents
     # For demonstration, we'll use a dummy folder.
     # In a real scenario, this would be your actual data folder.
-    data_folder = "langgraph_agent/data" # Assuming data folder is within langgraph_agent
+    data_folder = "data" # Assuming data folder is within langgraph_agent
 
     # Create a dummy data folder and some files for testing if they don't exist
     os.makedirs(data_folder, exist_ok=True)
@@ -87,9 +87,9 @@ def main():
         
     print(f"\nPortfolio analysis completed. Report saved to '{output_file}'")
 
-    # Generate Word document from the JSON report
-    word_output_file = os.path.join(output_dir, f"portfolio_analysis_report_{timestamp}.docx")
-    generate_word_report(output_file, word_output_file)
+    # Generate HTML report from the JSON report
+    html_output_file = os.path.join(output_dir, f"portfolio_analysis_report_{timestamp}.html")
+    generate_html_report(output_file, html_output_file)
 
     # Clean up dummy data after execution
     if os.path.exists(os.path.join(data_folder, "sample_report.txt")):

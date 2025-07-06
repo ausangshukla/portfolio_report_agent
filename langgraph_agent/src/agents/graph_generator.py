@@ -82,9 +82,12 @@ class GraphGeneratorNode:
                 "current_section_content": current_section_content,
                 "tabular_data": tabular_data
             })
+            print(f"--- Debug: Type of raw_llm_output: {type(raw_llm_output)} ---")
             print(f"--- Debug: Raw LLM Output: {raw_llm_output} ---")
+            print(f"--- Debug: Type of raw_llm_output.content: {type(raw_llm_output.content)} ---")
 
             graph_spec = self.parser.parse(raw_llm_output.content) # Parse the raw output
+            print(f"--- Debug: Type of graph_spec: {type(graph_spec)} ---")
             print(f"--- Graph spec generated for '{current_section_title}': {graph_spec} ---")
             
             # Update the current section in completed_sections with the new graph spec

@@ -137,8 +137,8 @@ class PortfolioAnalysisGraph:
             print(f"Decider: Critique present for '{state.get('current_section')}'. Loops remaining ({loop_count}/{self.max_review_loops}). Proceeding to rewrite.")
             return "rewrite"
         else:
-            print(f"Decider: No actionable critique or max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Moving to next section.")
-            return "next_section"
+            print(f"Decider: No actionable critique or max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to table generation.")
+            return "table_generation"
 
     def _decide_next_step_after_writer(self, state: AgentState) -> str:
         """
