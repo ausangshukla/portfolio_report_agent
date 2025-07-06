@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI # Example LLM
 from src.graphs.main_graph import PortfolioAnalysisGraph
 from src.tools.document_loader import load_documents_from_folder
+from src.utils.report_generator import generate_word_report
 
 def main():
     """
@@ -63,14 +64,28 @@ def main():
         print(f"- {doc['filename']} (Type: {doc['metadata'].get('type', 'unknown')})")
 
     # Pass the loaded documents directly to the graph's run_analysis method
-    # This requires a slight modification to run_analysis to accept loaded_docs
-    final_report = agent_graph.run_analysis(loaded_docs, sections_to_analyze)
-
-    # Output the final report
     output_file = "portfolio_analysis_report.json"
+    
+    print(f"Starting portfolio analysis and writing incremental report to '{output_file}'...")
+    
     with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(final_report, f, indent=2)
+        f.write("[\n") # Start JSON array
+        
+        first_section = True
+        for section_report in agent_graph.run_analysis(loaded_docs, sections_to_analyze):
+            if not first_section:
+                f.write(",\n") # Add comma for subsequent sections
+            
+            json.dump(section_report, f, indent=2)
+            first_section = False
+            
+        f.write("\n]\n") # End JSON array
+        
     print(f"\nPortfolio analysis completed. Report saved to '{output_file}'")
+
+    # Generate Word document from the JSON report
+    word_output_file = "portfolio_analysis_report.docx"
+    generate_word_report(output_file, word_output_file)
 
     # Clean up dummy data after execution
     if os.path.exists(os.path.join(data_folder, "sample_report.txt")):

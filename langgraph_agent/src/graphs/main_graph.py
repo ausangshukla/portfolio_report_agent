@@ -140,7 +140,7 @@ class PortfolioAnalysisGraph:
             print(f"Decider: Max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Moving to next section.")
             return "next_section"
 
-    def run_analysis(self, loaded_docs: List[Dict[str, Any]], sections: List[str]) -> List[Dict[str, Any]]:
+    def run_analysis(self, loaded_docs: List[Dict[str, Any]], sections: List[str]):
         """
         Executes the entire portfolio analysis process using the defined LangGraph.
         It initializes the agent state with pre-loaded documents, and then iteratively processes
@@ -174,8 +174,6 @@ class PortfolioAnalysisGraph:
             "messages": [BaseMessage(content="Analysis started.", type="info")] # Log of agent's actions.
         }
 
-        final_completed_sections = [] # To store the final output of all sections.
-
         # Step 3: Iterate through each section defined in `sections_to_analyze`.
         for section_title in sections:
             print(f"\n--- Starting analysis for section: '{section_title}' ---")
@@ -184,26 +182,31 @@ class PortfolioAnalysisGraph:
             current_section_state = initial_state.copy()
             current_section_state["current_section"] = section_title
             current_section_state["critique"] = None # Reset critique for each new section.
+            current_section_state["loop_count"] = 0 # Reset loop count for each new section.
 
+            # Run the graph for the current section
             for s in self.graph.stream(current_section_state):
                 current_section_state.update(s)
 
             # After the graph for a single section completes (reaches END),
             # extract the final version of that section from `completed_sections`
-            # and add it to our `final_completed_sections` list.
-            for section in current_section_state["completed_sections"]:
-                if section["section"] == section_title:
-                    final_completed_sections.append(section)
+            # and yield it.
+            found_section = None
+            for section_item in current_section_state["completed_sections"]:
+                if section_item["section"] == section_title:
                     print(f"--- Finalized section '{section_title}' ---")
+                    yield section_item
+                    found_section = section_item
                     break
             
-            # Optionally, update the overall `initial_state` with the finalized section.
-            # This can be useful if subsequent sections need to refer to content
-            # from previously completed sections. For this PRD, sections are largely
-            # independent, but this adds future-proofing.
-            initial_state["completed_sections"] = final_completed_sections.copy()
+            # Update the overall `initial_state` with the finalized section if found.
+            # This is crucial for subsequent sections to have access to previously
+            # completed sections if needed for context.
+            if found_section:
+                initial_state["completed_sections"].append(found_section)
+            else:
+                print(f"Warning: No finalized content found for section '{section_title}'.")
 
 
         print("\n--- Portfolio Analysis Completed ---")
-        return final_completed_sections
 
