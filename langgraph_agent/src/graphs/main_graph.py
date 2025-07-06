@@ -15,7 +15,7 @@ class PortfolioAnalysisGraph:
     Defines the LangGraph state machine for the portfolio analysis agent.
     Orchestrates the Extractor, Reviewer, and Writer nodes in an iterative loop.
     """
-    def __init__(self, max_review_loops: int = 2):
+    def __init__(self, max_review_loops: int = 1):
         """
         Initializes the PortfolioAnalysisGraph with configuration.
         The LLM will be initialized within run_analysis to support context caching.

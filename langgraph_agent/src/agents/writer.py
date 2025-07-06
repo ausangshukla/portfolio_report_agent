@@ -110,28 +110,10 @@ class WriterNode:
             updated_references = rewrite_result.get("references", [])
 
             # Update the specific section in completed_sections
-            updated_completed_sections = []
-            found = False
-            for section in completed_sections:
-                if section.get("section") == current_section_title:
-                    updated_completed_sections.append({
-                        "section": current_section_title,
-                        "content": rewritten_content,
-                        "references": updated_references
-                    })
-                    found = True
-                else:
-                    updated_completed_sections.append(section)
-            if not found: # Should not happen if original_content was found
-                updated_completed_sections.append({
-                    "section": current_section_title,
-                    "content": rewritten_content,
-                    "references": updated_references
-                })
-
             # Update the state, including incrementing loop_count
             return {
-                "completed_sections": updated_completed_sections,
+                "current_section_content": rewritten_content, # Update current_section_content
+                "current_section_references": updated_references, # Store references separately
                 "loop_count": state.get("loop_count", 0) + 1, # Increment loop_count here
                 "messages": state.get("messages", []) + [
                     BaseMessage(content=f"WriterNode: Section '{current_section_title}' rewritten.", type="tool_output")
@@ -165,7 +147,7 @@ class WriterNode:
                     found_info.append(f"Found '{term}' in {filename}:\n{content[:200]}...") # Snippet
         return "\n".join(found_info) if found_info else "No new information found for search terms."
 
-# Example Usage (for testing purposes)
+
 if __name__ == "__main__":
     from langchain_community.llms import FakeListLLM
     from ..state import AgentState
@@ -220,7 +202,7 @@ if __name__ == "__main__":
         ],
         "current_section": "Overview",
         "loop_count": 0,
-        "critique": None, # No critique
+                "critique": None, # No critique
         "messages": []
     }
     print("\n--- Running WriterNode with no critique ---")

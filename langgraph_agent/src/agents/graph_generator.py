@@ -32,7 +32,7 @@ class GraphGeneratorNode:
             - Analyze the content and tabular data for trends, comparisons, or distributions.
             - Suggest a graph type that best represents the identified data.
             - Provide the data in a structured format suitable for the chosen graph type.
-            - If no suitable data for a graph is found, return an empty graph structure: {{"title": "", "type": "none", "data": {}}}.
+            - If no suitable data for a graph is found, return an empty graph structure: {{"title": "", "type": "none", "data": {{}}}}.
             - The output MUST be a valid JSON object.
 
             Example Output (Bar Chart):
@@ -67,6 +67,7 @@ class GraphGeneratorNode:
         current_section_content = state.get("current_section_content", "")
         current_section_title = state.get("current_section", "")
         tabular_data = state.get("tabular_data", {}) # Get tabular data if available
+        current_section_references = state.get("current_section_references", []) # Get references from writer
 
         try:
             graph_spec = self.chain.invoke({
@@ -78,26 +79,18 @@ class GraphGeneratorNode:
             print(f"--- Graph spec generated for '{current_section_title}' ---")
             
             # Update the current section in completed_sections with the new graph spec
-            completed_sections = state.get("completed_sections", [])
-            updated_completed_sections = []
-            found = False
-            for section in completed_sections:
-                if section.get("section") == current_section_title:
-                    section["graph_spec"] = graph_spec
-                    found = True
-                updated_completed_sections.append(section)
-            
-            if not found:
-                # This case should ideally not happen if the flow is correct,
-                # but as a fallback, create a new entry.
-                updated_completed_sections.append({
-                    "section": current_section_title,
-                    "content": current_section_content,
-                    "graph_spec": graph_spec,
-                    "references": [] # Assuming references are handled by writer/extractor
-                })
+            # Create the new completed section entry
+            new_completed_section = {
+                "section": current_section_title,
+                "content": current_section_content,
+                "graph_spec": graph_spec,
+                "references": current_section_references # Use references from writer
+            }
 
-            return {"completed_sections": updated_completed_sections}
+            # Append the new completed section to the list
+            completed_sections = state.get("completed_sections", []) + [new_completed_section]
+
+            return {"completed_sections": completed_sections}
 
         except Exception as e:
             print(f"Error generating graph for section '{current_section_title}': {e}")

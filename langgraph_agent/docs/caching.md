@@ -23,16 +23,17 @@ Here is a Mermaid diagram illustrating the proposed change to the workflow:
 ```mermaid
 graph TD
     subgraph Current Workflow
-        A[run_analysis receives llm] --> B[Nodes initialized with llm in __init__];
-        B --> C[graph.stream processes data];
+        A[run_analysis receives llm] --> B[Nodes initialized with llm in __init__]
+        B --> C[graph.stream processes data]
     end
 
     subgraph Proposed Workflow
-        A_new[run_analysis receives llm] --> D{Create Context Cache from docs};
-        D --> E{Create cached_llm};
-        E --> F[Nodes initialized with cached_llm in run_analysis];
-        F --> G[graph.stream processes data];
+        A_new[run_analysis receives llm] --> D{Create Context Cache from docs}
+        D --> E{Create cached_llm}
+        E --> F[Nodes initialized with cached_llm in run_analysis]
+        F --> G[graph.stream processes data]
     end
 
     style B fill:#f9f,stroke:#333,stroke-width:2px
     style F fill:#ccf,stroke:#333,stroke-width:2px
+```

@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI # Example LLM
 from src.graphs.main_graph import PortfolioAnalysisGraph
@@ -41,14 +42,14 @@ def main():
     sections_to_analyze = [
         "Overview",
         "Financial Review",
-        "Risks",
-        "Strategic Insights",
-        "Competition" # This section might not have direct content in sample, testing robustness
+        # "Risks",
+        # "Strategic Insights",
+        # "Competition" # This section might not have direct content in sample, testing robustness
     ]
 
     # Initialize and run the graph
     print("Initializing Portfolio Analysis Agent...")
-    agent_graph = PortfolioAnalysisGraph(max_review_loops=3) # Max 3 review loops per section
+    agent_graph = PortfolioAnalysisGraph(max_review_loops=1) # Max 3 review loops per section
 
     print("Starting portfolio analysis...")
     print(f"Data folder for analysis: {data_folder}")
@@ -64,7 +65,10 @@ def main():
         print(f"- {doc['filename']} (Type: {doc['metadata'].get('type', 'unknown')})")
 
     # Pass the loaded documents directly to the graph's run_analysis method
-    output_file = "portfolio_analysis_report.json"
+    output_dir = "outputs"
+    os.makedirs(output_dir, exist_ok=True)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = os.path.join(output_dir, f"portfolio_analysis_report_{timestamp}.json")
     
     print(f"Starting portfolio analysis and writing incremental report to '{output_file}'...")
     
@@ -84,7 +88,7 @@ def main():
     print(f"\nPortfolio analysis completed. Report saved to '{output_file}'")
 
     # Generate Word document from the JSON report
-    word_output_file = "portfolio_analysis_report.docx"
+    word_output_file = os.path.join(output_dir, f"portfolio_analysis_report_{timestamp}.docx")
     generate_word_report(output_file, word_output_file)
 
     # Clean up dummy data after execution
