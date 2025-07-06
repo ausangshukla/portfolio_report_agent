@@ -36,20 +36,20 @@ def generate_html_report(json_report_path: str, output_html_path: str):
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #0056b3; /* Deep Blue */
-            --secondary-color: #007bff; /* Bright Blue */
-            --accent-color: #28a745; /* Success Green */
-            --text-color: #343a40; /* Dark Gray */
-            --light-text-color: #6c757d; /* Medium Gray */
-            --bg-color: #f4f7f6; /* Very Light Gray */
-            --card-bg: #ffffff; /* White */
-            --border-color: #dee2e6; /* Light Border Gray */
-            --shadow-light: rgba(0, 0, 0, 0.08);
-            --shadow-medium: rgba(0, 0, 0, 0.15);
-            --hover-bg: #e2e6ea; /* Lighter Gray for hover */
-            --code-bg: #e9ecef; /* Code background */
-            --code-inline-bg: #fff3cd; /* Inline code background */
-            --blockquote-bg: #eaf0f6; /* Blockquote background */
+            --primary-color: #87CEEB; /* Sky Blue - Pastel */
+            --secondary-color: #ADD8E6; /* Light Blue - Pastel */
+            --accent-color: #90EE90; /* Light Green - Pastel */
+            --text-color: #4A4A4A; /* Darker Gray for readability */
+            --light-text-color: #778899; /* Light Slate Gray */
+            --bg-color: #F0F8FF; /* Alice Blue - Very Light */
+            --card-bg: #FFFFFF; /* White */
+            --border-color: #E0E0E0; /* Lighter Border Gray */
+            --shadow-light: rgba(0, 0, 0, 0.05);
+            --shadow-medium: rgba(0, 0, 0, 0.10);
+            --hover-bg: #E6F7FF; /* Lighter Blue for hover */
+            --code-bg: #F5F5DC; /* Beige - Code background */
+            --code-inline-bg: #FFFACD; /* Lemon Chiffon - Inline code background */
+            --blockquote-bg: #E6F0FA; /* Light Steel Blue - Blockquote background */
         }
 
         body {
