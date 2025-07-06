@@ -12,8 +12,8 @@ class TableGeneratorNode:
         self.llm = llm
         self.parser = JsonOutputParser()
         self.prompt = PromptTemplate(
-            template="""You are an expert at extracting and summarizing information into tabular format.
-            Given the following documents and the current section content, generate relevant tabular data.
+            template="""You are an expert financial analyst, skilled at extracting, summarizing, and presenting complex financial and business information in clear, concise, and well-structured tabular formats.
+            Given the following documents and the current section content, generate highly relevant and insightful tabular data.
             The table should be in JSON format, with a 'title' and 'rows' key.
             Each row should be a dictionary where keys are column headers.
 
@@ -24,18 +24,31 @@ class TableGeneratorNode:
             Current Section Content: {current_section_content}
 
             Instructions:
-            - Identify key numerical or categorical data points relevant to the current section.
-            - Create a table that summarizes this data.
-            - Ensure the table is well-structured and easy to understand.
+            - Focus on extracting key financial metrics, operational data, and comparative figures.
+            - Include relevant time periods (e.g., quarters, fiscal years) and growth rates where applicable.
+            - Structure the table to facilitate easy comparison and analysis, similar to a financial report.
+            - Ensure the table is well-structured, easy to understand, and directly addresses the content of the current section.
             - If no relevant tabular data can be extracted, return an empty table structure: {{"title": "", "rows": []}}.
             - The output MUST be a valid JSON object.
 
-            Example Output:
+            Example Output (Financial Highlights):
             {{
-                "title": "Financial Highlights Q1 2025",
+                "title": "Consolidated Financial Performance (USD Millions)",
                 "rows": [
-                    {{"Metric": "Revenue", "Value": "$10M", "Change": "+15%"}},
-                    {{"Metric": "Profit", "Value": "$2M", "Change": "+20%"}}
+                    {{"Metric": "Revenue", "Q1 2024": "1,200", "Q1 2025": "1,500", "YoY Growth": "25%"}},
+                    {{"Metric": "Gross Profit", "Q1 2024": "500", "Q1 2025": "650", "YoY Growth": "30%"}},
+                    {{"Metric": "Net Income", "Q1 2024": "150", "Q1 2025": "200", "YoY Growth": "33.3%"}},
+                    {{"Metric": "EPS (Diluted)", "Q1 2024": "1.25", "Q1 2025": "1.60", "YoY Growth": "28%"}}
+                ]
+            }}
+
+            Example Output (Operational Metrics):
+            {{
+                "title": "Key Operational Metrics - Product X",
+                "rows": [
+                    {{"Metric": "Units Sold", "2023": "10,000", "2024": "12,500", "Growth": "25%"}},
+                    {{"Metric": "Average Selling Price", "2023": "$120", "2024": "$115", "Change": "-$5"}},
+                    {{"Metric": "Customer Acquisition Cost", "2023": "$50", "2024": "$45", "Change": "-$5"}}
                 ]
             }}
             """,
@@ -65,9 +78,7 @@ class TableGeneratorNode:
             
             # Return the tabular_data and ensure other relevant state variables are passed through
             return {
-                "tabular_data": tabular_data,
-                "current_section_content": current_section_content, # Preserve content
-                "current_section_references": state.get("current_section_references", []) # Preserve references
+                "tabular_data": tabular_data
             }
 
         except Exception as e:
