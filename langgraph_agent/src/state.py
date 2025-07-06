@@ -29,7 +29,7 @@ class AgentState(TypedDict):
         current_section_content (Optional[str]): The content of the current section being processed.
         current_section_references (List[Dict[str, Any]]): References for the current section.
         tabular_data (Optional[Dict[str, Any]]): Stores generated tabular data for the current section.
-        graph_spec (Optional[Dict[str, Any]]): Stores generated graph specifications for the current section.
+        graph_specs (Optional[List[Dict[str, Any]]]): Stores a list of generated graph specifications for the current section.
     """
     documents: List[Dict[str, Any]]
     sections_to_process: List[Dict[str, str]] # Updated to expect dicts with title and instruction
@@ -41,5 +41,5 @@ class AgentState(TypedDict):
     current_section_content: Optional[str]
     current_section_references: List[Dict[str, Any]]
     tabular_data: Optional[Dict[str, Any]]
-    graph_spec: Optional[Dict[str, Any]]
+    graph_specs: Optional[List[Dict[str, Any]]] # Changed to graph_specs (plural) and type to List
     messages: List[BaseMessage]

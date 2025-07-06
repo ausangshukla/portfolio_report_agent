@@ -77,36 +77,40 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                 </table>
             {% endif %}
 
-            {% if section.graph_spec and section.graph_spec.type != 'none' %}
-                <h3>{{ section.graph_spec.title }}</h3>
-                {% if section.graph_spec.type == 'textual_description' %}
-                    <p>{{ section.graph_spec.data }}</p>
-                {% else %}
-                    <div class="chart-container">
-                        <canvas id="chart-{{ loop.index }}"></canvas>
-                    </div>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            var ctx = document.getElementById('chart-{{ loop.index }}').getContext('2d');
-                            var chartData = {{ section.graph_spec.data | tojson }};
-                            var chartType = "{{ section.graph_spec.type }}";
-                            new Chart(ctx, {
-                                type: chartType,
-                                data: chartData,
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        title: {
-                                            display: true,
-                                            text: "{{ section.graph_spec.title }}"
+            {% if section.graph_specs %}
+                {% for graph_spec in section.graph_specs %}
+                    {% if graph_spec.type != 'none' %}
+                        <h3>{{ graph_spec.title }}</h3>
+                        {% if graph_spec.type == 'textual_description' %}
+                            <p>{{ graph_spec.data }}</p>
+                        {% else %}
+                            <div class="chart-container">
+                                <canvas id="chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    var ctx = document.getElementById('chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}').getContext('2d');
+                                    var chartData = {{ graph_spec.data | tojson }};
+                                    var chartType = "{{ graph_spec.type }}";
+                                    new Chart(ctx, {
+                                        type: chartType,
+                                        data: chartData,
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                                title: {
+                                                    display: true,
+                                                    text: "{{ graph_spec.title }}"
+                                                }
+                                            }
                                         }
-                                    }
-                                }
-                            });
-                        });
-                    </script>
-                {% endif %}
+                                    });
+                                });
+                            </script>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
             {% endif %}
 
             {% if False and section.references %}

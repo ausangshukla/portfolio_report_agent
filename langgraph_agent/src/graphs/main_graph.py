@@ -202,7 +202,7 @@ class PortfolioAnalysisGraph:
             "loop_count": 0, # Tracks review iterations for the current section.
             "critique": None, # Stores feedback from the reviewer for the writer.
             "tabular_data": None, # Stores generated tabular data for the current section.
-            "graph_spec": None, # Stores generated graph specifications for the current section.
+            "graph_specs": [], # Stores generated graph specifications for the current section (now a list).
             "messages": [BaseMessage(content="Analysis started.", type="info")] # Log of agent's actions.
         }
 
@@ -239,7 +239,7 @@ class PortfolioAnalysisGraph:
                 "content": final_state_after_stream.get("current_section_content", ""),
                 "references": final_state_after_stream.get("current_section_references", []),
                 "tabular_data": final_state_after_stream.get("tabular_data", None),
-                "graph_spec": final_state_after_stream.get("graph_spec", None)
+                "graph_specs": final_state_after_stream.get("graph_specs", []) # Changed to graph_specs (plural)
             }
             
             print(f"--- Finalized section '{section_title}' ---")

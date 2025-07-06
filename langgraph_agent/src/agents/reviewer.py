@@ -90,7 +90,6 @@ class ReviewerNode:
             return {
                 "critique": critique,
                 "current_section_content": current_section_content, # Preserve content
-                "current_section_references": current_section_references, # Preserve references
                 "messages": state.get("messages", []) + [
                     BaseMessage(content=f"ReviewerNode: Critique for '{current_section_title}' generated.", type="tool_output")
                 ]
