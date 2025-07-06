@@ -13,9 +13,9 @@ class AgentState(TypedDict):
         sections_to_process (List[str]): A list of section titles that still need to be
                                          processed by the agent (e.g., "Overview", "Financial Review").
         completed_sections (List[Dict[str, Any]]): A list of dictionaries, where each
-                                                  dictionary represents a completed section
-                                                  of the analysis, including its content,
-                                                  references, and any other relevant metadata.
+                                                   dictionary represents a completed section
+                                                   of the analysis, including its content,
+                                                   sub_sections, references, and any other relevant metadata.
         current_section (Optional[str]): The title of the section currently being processed.
                                          None if no section is currently active.
         current_section_instruction (Optional[str]): Additional instruction for the LLM for the current section.

@@ -198,6 +198,7 @@ class PortfolioAnalysisGraph:
             "current_section_instruction": None, # The instruction for the current section.
             "loop_count": 0, # Tracks review iterations for the current section.
             "critique": None, # Stores feedback from the reviewer for the writer.
+            "current_section_sub_sections": [], # New: Initialize sub_sections
             "tabular_data": None, # Stores generated tabular data for the current section.
             "graph_specs": [], # Stores generated graph specifications for the current section (now a list).
             "messages": [BaseMessage(content="Analysis started.", type="info")] # Log of agent's actions.
@@ -233,7 +234,8 @@ class PortfolioAnalysisGraph:
             finalized_section = {
                 "section": section_title,
                 "instruction": section_instruction, # Include the instruction in the finalized report
-                "content": final_state_after_stream.get("current_section_content", ""),
+                "content": final_state_after_stream.get("current_section_content", ""), # Keep for backward compatibility if needed
+                "sub_sections": final_state_after_stream.get("current_section_sub_sections", []), # New: Store structured sub-sections
                 "references": final_state_after_stream.get("current_section_references", []),
                 "tabular_data": final_state_after_stream.get("tabular_data", None),
                 "graph_specs": final_state_after_stream.get("graph_specs", []) # Changed to graph_specs (plural)
