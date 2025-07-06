@@ -36,7 +36,7 @@ class ExtractorNode:
              Focus on extracting factual information and key insights.
              Break down the content into logical sub-sections, each with a clear title and its corresponding content.
              
-             **IMPORTANT**: Always include a 'sub_sections' key in your JSON output, which should be a list of sub-section objects. If no relevant information is found for a sub-section, its content should be "No information found for this sub-section.". If no sub-sections can be created, return an empty list for 'sub_sections'. No markdown in the json output.
+             IMPORTANT: Always include a 'sub_sections' key in your JSON output, which should be a list of sub-section objects. If no relevant information is found for a sub-section, its content should be "No information found for this sub-section.". If no sub-sections can be created, return an empty list for 'sub_sections'. No markdown in the json output.
              
              {format_instructions}
              """),

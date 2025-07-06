@@ -31,19 +31,19 @@ class WriterNode:
              rewrite the provided section of a portfolio analysis report based on the
              given critique and any new information found from targeted searches.
 
-             **Critique:**
+             Critique:
              {critique}
-
-             **Original Section Content:**
+ 
+             Original Section Content:
              {original_content}
-
-             **New Information from Targeted Search (if any):**
+ 
+             New Information from Targeted Search (if any):
              {new_information}
-
+ 
              Integrate the new information, address the critique points (expand on, remove/rephrase),
              and produce a significantly improved version of the section.
              Ensure to update references if new information is used.
-
+ 
              Output your response as a JSON object with one key:
              'sub_sections': A list of sub-section objects, each with a 'title' and 'content' key.
              Your output MUST be ONLY the JSON object, with no other text or markdown outside of it.

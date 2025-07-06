@@ -36,66 +36,85 @@ def generate_html_report(json_report_path: str, output_html_path: str):
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50; /* Dark blue-gray for headings */
-            --secondary-color: #34495e; /* Slightly lighter dark blue-gray */
-            --accent-color: #3498db; /* Blue for highlights */
-            --text-color: #333;
-            --bg-color: #f8f9fa; /* Light gray background */
-            --card-bg: #ffffff;
-            --border-color: #e0e0e0;
-            --shadow-light: rgba(0, 0, 0, 0.05);
-            --shadow-medium: rgba(0, 0, 0, 0.1);
+            --primary-color: #0056b3; /* Deep Blue */
+            --secondary-color: #007bff; /* Bright Blue */
+            --accent-color: #28a745; /* Success Green */
+            --text-color: #343a40; /* Dark Gray */
+            --light-text-color: #6c757d; /* Medium Gray */
+            --bg-color: #f4f7f6; /* Very Light Gray */
+            --card-bg: #ffffff; /* White */
+            --border-color: #dee2e6; /* Light Border Gray */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --hover-bg: #e2e6ea; /* Lighter Gray for hover */
+            --code-bg: #e9ecef; /* Code background */
+            --code-inline-bg: #fff3cd; /* Inline code background */
+            --blockquote-bg: #eaf0f6; /* Blockquote background */
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
+            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            font-size: 16px;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 20px auto;
+            max-width: 1100px;
+            margin: 30px auto;
             background: var(--card-bg);
-            padding: 30px 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px var(--shadow-medium);
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px var(--shadow-medium);
+            border: 1px solid var(--border-color);
         }
 
         h1, h2, h3, h4, h5, h6 {
             color: var(--primary-color);
-            margin-top: 1.5em;
-            margin-bottom: 0.8em;
-            font-weight: 600;
+            margin-top: 1.8em;
+            margin-bottom: 0.7em;
+            font-weight: 700;
+            line-height: 1.3;
         }
 
-        h1 { font-size: 2.5em; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
-        h2 { font-size: 2em; color: var(--secondary-color); }
-        h3 { font-size: 1.5em; color: var(--accent-color); }
+        h1 {
+            font-size: 2.8em;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+        h2 { font-size: 2.2em; color: var(--secondary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        h3 { font-size: 1.7em; color: var(--primary-color); }
+        h4 { font-size: 1.4em; color: var(--text-color); }
 
         p {
-            margin-bottom: 1em;
+            margin-bottom: 1.2em;
+            color: var(--light-text-color);
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px var(--shadow-light);
-            border-radius: 8px;
+            border-collapse: separate; /* Use separate for border-spacing */
+            border-spacing: 0; /* Remove space between borders */
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+            border-radius: 10px;
             overflow: hidden; /* Ensures rounded corners apply to inner elements */
+            background-color: var(--card-bg);
         }
 
         th, td {
-            border: 1px solid var(--border-color);
-            padding: 12px 15px;
+            border: none; /* Remove individual cell borders */
+            padding: 15px 20px;
             text-align: left;
-            vertical-align: top;
+            vertical-align: middle;
         }
 
         th {
@@ -104,98 +123,208 @@ def generate_html_report(json_report_path: str, output_html_path: str):
             font-weight: 700;
             text-transform: uppercase;
             font-size: 0.9em;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
         }
 
+        th:first-child { border-top-left-radius: 10px; }
+        th:last-child { border-top-right-radius: 10px; }
+
         tr:nth-child(even) {
-            background-color: #f2f2f2; /* Lighter shade for even rows */
+            background-color: #f8f9fa; /* Lighter shade for even rows */
         }
 
         tr:hover {
-            background-color: #e9ecef; /* Hover effect for rows */
+            background-color: var(--hover-bg); /* Hover effect for rows */
+            transition: background-color 0.3s ease;
+        }
+
+        td {
+            border-bottom: 1px solid var(--border-color);
+        }
+        tr:last-child td {
+            border-bottom: none;
         }
 
         .chart-container {
             position: relative;
-            height: 450px; /* Slightly taller charts */
+            height: 500px; /* Taller charts for better visualization */
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px var(--shadow-light);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+            border: 1px solid var(--border-color);
         }
 
         .references {
-            margin-top: 40px;
-            border-top: 2px solid var(--border-color);
-            padding-top: 25px;
-            background-color: #f0f3f6;
-            padding: 20px;
-            border-radius: 8px;
+            margin-top: 50px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 30px;
+            background-color: var(--bg-color);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
         }
 
         .references h3 {
-            color: var(--secondary-color);
+            color: var(--primary-color);
             margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            text-align: center;
         }
 
         .references ul {
-            list-style: disc;
-            padding-left: 20px;
+            list-style: none; /* Remove default bullet */
+            padding-left: 0;
             margin: 0;
         }
 
         .references li {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 0.95em;
-            color: #555;
+            color: var(--light-text-color);
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .references li:before {
+            content: "•"; /* Custom bullet point */
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+            line-height: 1;
         }
 
         /* Markdown specific styles */
         div pre {
-            background-color: #e9ecef;
+            background-color: var(--code-bg);
             border: 1px solid var(--border-color);
-            border-left: 5px solid var(--accent-color);
-            padding: 15px;
-            border-radius: 5px;
+            border-left: 6px solid var(--secondary-color);
+            padding: 18px;
+            border-radius: 8px;
             overflow-x: auto;
             font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
-            line-height: 1.4;
-            margin-bottom: 1.5em;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 1.8em;
+            box-shadow: inset 0 1px 5px rgba(0,0,0,0.05);
         }
 
         div code {
-            background-color: #ffe0b2; /* Light orange for inline code */
-            padding: 2px 5px;
-            border-radius: 3px;
+            background-color: var(--code-inline-bg);
+            padding: 3px 7px;
+            border-radius: 5px;
             font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
             font-size: 0.9em;
+            color: var(--primary-color);
         }
 
         div blockquote {
-            border-left: 4px solid var(--accent-color);
-            margin: 1.5em 0;
-            padding: 0.5em 15px;
-            background-color: #eaf4fa;
-            color: #555;
+            border-left: 5px solid var(--accent-color);
+            margin: 1.8em 0;
+            padding: 0.8em 20px;
+            background-color: var(--blockquote-bg);
+            color: var(--light-text-color);
             font-style: italic;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         div ul, div ol {
-            margin-bottom: 1em;
-            padding-left: 25px;
+            margin-bottom: 1.5em;
+            padding-left: 30px;
         }
 
         div ul li, div ol li {
-            margin-bottom: 0.5em;
+            margin-bottom: 0.7em;
+            color: var(--light-text-color);
+        }
+
+        /* Header and Footer */
+        .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-header h1 {
+            font-size: 3.5em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .report-header p {
+            font-size: 1.2em;
+            color: var(--light-text-color);
+            margin-top: 0;
+        }
+
+        .report-footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9em;
+            color: var(--light-text-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .container {
+                margin: 15px auto;
+                padding: 25px 30px;
+            }
+            h1 { font-size: 2.2em; }
+            h2 { font-size: 1.8em; }
+            h3 { font-size: 1.4em; }
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                margin: 0;
+                padding: 0;
+                max-width: none;
+            }
+            table, pre, .chart-container, blockquote {
+                page-break-inside: avoid;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                page-break-after: avoid;
+            }
+            .report-footer {
+                page-break-before: always;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Portfolio Analysis Report</h1>
-        <p>This document provides a detailed analysis of the portfolio, generated by the LangGraph agent.</p>
+        <div class="report-header">
+            <h1>Portfolio Analysis Report</h1>
+            <p>Detailed analysis generated by the LangGraph agent.</p>
+            <p>Date: {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
 {% for section in report_data %}
             <h2>{{ section.section }}</h2>
             {% if section.sub_sections %}
@@ -276,13 +405,16 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                 </div>
             {% endif %}
         {% endfor %}
+        <div class="report-footer">
+            <p>&copy; {{ datetime.now().year }} LangGraph Agent. All rights reserved.</p>
+        </div>
     </div>
 </body>
 </html>
         """)
 
         # Render the template
-        html_content = template.render(report_data=report_data)
+        html_content = template.render(report_data=report_data, datetime=datetime)
 
         os.makedirs(os.path.dirname(output_html_path), exist_ok=True)
         with open(output_html_path, 'w', encoding='utf-8') as f:
