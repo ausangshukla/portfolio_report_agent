@@ -1,0 +1,158 @@
+from typing import Dict, Any, List
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.messages import BaseMessage
+from ..state import AgentState # Assuming AgentState is in src/state.py
+
+class ReviewerNode:
+    """
+    The ReviewerNode is responsible for critiquing the content of a generated section.
+    It provides feedback on what to expand, what to remove, and suggests search terms
+    for further refinement by the WriterNode.
+    """
+    def __init__(self, llm):
+        """
+        Initializes the ReviewerNode with a language model.
+
+        Args:
+            llm: An instance of a LangChain-compatible language model.
+        """
+        self.llm = llm
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are an expert editor and financial analyst. Your task is to
+             critique the provided section of a portfolio analysis report based *only* on the information present in the 'Section Content'.
+             Provide constructive feedback to improve its clarity, conciseness, and structure.
+             Do NOT ask for information that is not present in the 'Section Content'.
+
+             Your critique should include:
+             1.  **expand_on**: A list of specific topics or areas that need more detail or elaboration.
+             2.  **remove_or_rephrase**: A list of sentences or ideas that should be removed,
+                 condensed, or rephrased for clarity or conciseness.
+             3.  **search_terms**: A list of up to 5 keywords or phrases that can be used to search
+                 the original documents for more relevant information to address the 'expand_on' points.
+
+             Output your response as a JSON object with these three keys.
+             Example:
+             {{
+                 "expand_on": ["company's market share", "recent financial performance"],
+                 "remove_or_rephrase": ["The company is good."],
+                 "search_terms": ["market share 2023", "Q4 2023 earnings"]
+             }}
+             """),
+            ("user", "Section Title: {section_title}\n\nSection Content:\n{section_content}")
+        ])
+        self.parser = JsonOutputParser()
+        self.chain = self.prompt | self.llm | self.parser
+
+    def review(self, state: AgentState) -> Dict[str, Any]:
+        """
+        Reviews the current section's content and generates a critique.
+
+        Args:
+            state (AgentState): The current state of the agent.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing the updated state with the critique.
+        """
+        current_section_title = state.get("current_section")
+        completed_sections = state.get("completed_sections", [])
+
+        # Find the content of the current section
+        current_section_content = ""
+        for section in completed_sections:
+            if section.get("section") == current_section_title:
+                current_section_content = section.get("content", "")
+                break
+
+        if not current_section_title or not current_section_content:
+            print(f"ReviewerNode: No content found for section '{current_section_title}' to review. Skipping review.")
+            return {
+                "messages": state.get("messages", []) + [
+                    BaseMessage(content=f"ReviewerNode: No content to review for '{current_section_title}'.", type="info")
+                ],
+                "critique": None # Ensure critique is reset or remains None if no content
+            }
+
+        print(f"--- ReviewerNode: Reviewing section '{current_section_title}' (Loop: {state.get('loop_count')}) ---")
+
+        try:
+            review_input = {
+                "section_title": current_section_title,
+                "section_content": current_section_content
+            }
+            critique_result = self.chain.invoke(review_input)
+
+            # Ensure the output matches the expected JSON structure
+            critique = {
+                "expand_on": critique_result.get("expand_on", []),
+                "remove_or_rephrase": critique_result.get("remove_or_rephrase", []),
+                "search_terms": critique_result.get("search_terms", [])
+            }
+
+            # Update the state with the critique
+            return {
+                "critique": critique,
+                "messages": state.get("messages", []) + [
+                    BaseMessage(content=f"ReviewerNode: Critique for '{current_section_title}' generated.", type="tool_output")
+                ]
+            }
+        except Exception as e:
+            error_message = f"ReviewerNode: Error during review for '{current_section_title}': {e}"
+            print(error_message)
+            return {
+                "messages": state.get("messages", []) + [
+                    BaseMessage(content=error_message, type="error")
+                ],
+                "critique": None # Ensure critique is None on error
+            }
+
+# Example Usage (for testing purposes)
+if __name__ == "__main__":
+    from langchain_community.llms import FakeListLLM
+    from ..state import AgentState
+
+    # Mock LLM for testing
+    mock_llm = FakeListLLM(responses=[
+        '{"expand_on": ["more details on market trends"], "remove_or_rephrase": ["This is a basic overview."], "search_terms": ["market trends 2024", "industry outlook"]}'
+    ])
+
+    reviewer = ReviewerNode(llm=mock_llm)
+
+    # Mock initial state with a completed section
+    initial_state: AgentState = {
+        "documents": [], # Not directly used by reviewer, but part of state
+        "sections_to_process": [],
+        "completed_sections": [
+            {
+                "section": "Overview",
+                "content": "This is a basic overview of the company. The company is good.",
+                "references": []
+            }
+        ],
+        "current_section": "Overview",
+        "loop_count": 0,
+        "critique": None,
+        "messages": []
+    }
+
+    print("\n--- Running ReviewerNode for 'Overview' ---")
+    updated_state = reviewer.review(initial_state)
+    print("Updated State:")
+    print(updated_state["critique"])
+    print(updated_state["messages"])
+
+    # Simulate no content to review
+    initial_state_no_content: AgentState = {
+        "documents": [],
+        "sections_to_process": [],
+        "completed_sections": [], # No completed sections
+        "current_section": "NonExistentSection",
+        "loop_count": 0,
+        "critique": None,
+        "messages": []
+    }
+    print("\n--- Running ReviewerNode for 'NonExistentSection' (no content) ---")
+    updated_state_no_content = reviewer.review(initial_state_no_content)
+    print("Updated State:")
+    print(updated_state_no_content["critique"])
+    print(updated_state_no_content["messages"])

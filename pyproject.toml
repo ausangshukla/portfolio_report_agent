@@ -1,0 +1,27 @@
+[project]
+name = "portfolio-analysis"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Ausang Shukla",email = "thimmaiah@gmail.com"}
+]
+readme = "langgraph_agent/README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "langchain (>=0.2.0,<0.3.0)",
+    "langgraph (>=0.1.0,<0.2.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "langchain-google-genai (>=1.0.0,<2.0.0)",
+    "pandas (>=2.2.2,<3.0.0)",
+    "PyPDF2 (>=3.0.1,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "langgraph_agent/src" }
+]
