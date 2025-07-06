@@ -48,7 +48,7 @@ def main():
 
     # Initialize and run the graph
     print("Initializing Portfolio Analysis Agent...")
-    agent_graph = PortfolioAnalysisGraph(llm=llm, max_review_loops=3) # Max 3 review loops per section
+    agent_graph = PortfolioAnalysisGraph(max_review_loops=3) # Max 3 review loops per section
 
     print("Starting portfolio analysis...")
     print(f"Data folder for analysis: {data_folder}")
@@ -72,7 +72,7 @@ def main():
         f.write("[\n") # Start JSON array
         
         first_section = True
-        for section_report in agent_graph.run_analysis(loaded_docs, sections_to_analyze):
+        for section_report in agent_graph.run_analysis(llm, loaded_docs, sections_to_analyze):
             if not first_section:
                 f.write(",\n") # Add comma for subsequent sections
             

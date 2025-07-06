@@ -1,14 +1,17 @@
 import json
+import os
+from datetime import datetime
 from docx import Document
 from docx.shared import Inches
+import markdown
 
-def generate_word_report(json_report_path: str, output_docx_path: str):
+def generate_word_report(json_report_path: str, output_dir: str = "outputs/"):
     """
     Generates a well-formatted Word document from a JSON analysis report.
 
     Args:
         json_report_path (str): The file path to the input JSON report.
-        output_docx_path (str): The file path where the Word document will be saved.
+        output_dir (str): The directory where the Word document will be saved. Defaults to "outputs/".
     """
     try:
         # Load the JSON data from the report file
@@ -29,16 +32,26 @@ def generate_word_report(json_report_path: str, output_docx_path: str):
                 # Add section heading
                 document.add_heading(section["section"], level=1)
                 
-                # Add the content of the section
-                document.add_paragraph(section["content"])
+                # Convert markdown content to plain text for Word document
+                # This is a basic conversion; for complex markdown, a more robust library might be needed
+                plain_content = markdown.markdown(section["content"])
+                document.add_paragraph(plain_content)
 
                 # Add references if available
                 if "references" in section and section["references"]:
                     document.add_heading('References', level=2)
                     for ref in section["references"]:
-                        document.add_paragraph(f"- {ref.get('filename', 'N/A')}: Page {ref.get('page_number', 'N/A')}")
+                        document.add_paragraph(f"- {ref.get('document', 'N/A')}: {ref.get('location', 'N/A')}")
                 
                 document.add_paragraph('\n') # Add a blank line after each section
+
+        # Ensure the output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Generate a timestamped filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_filename = f"portfolio_analysis_report_{timestamp}.docx"
+        output_docx_path = os.path.join(output_dir, output_filename)
 
         # Save the document
         document.save(output_docx_path)
@@ -56,8 +69,8 @@ if __name__ == "__main__":
     # This part will only run if the script is executed directly
     # You would typically call generate_word_report from run_agent.py
     dummy_json_path = "portfolio_analysis_report.json" # Assuming this file exists for testing
-    output_doc_path = "portfolio_analysis_report.docx"
-    
+    output_directory = "outputs/" # Specify the output directory
+
     # Create a dummy JSON file for testing if it doesn't exist
     if not os.path.exists(dummy_json_path):
         dummy_data = [
@@ -68,4 +81,4 @@ if __name__ == "__main__":
             json.dump(dummy_data, f, indent=2)
         print(f"Created dummy JSON file: {dummy_json_path}")
 
-    generate_word_report(dummy_json_path, output_doc_path)
+    generate_word_report(dummy_json_path, output_directory)

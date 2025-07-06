@@ -1,8 +1,11 @@
 from typing import Dict, Any, List
 from langgraph.graph import StateGraph, END
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage # Added SystemMessage for context caching
+from langchain_google_genai import ChatGoogleGenerativeAI # Using Gemini
 from ..state import AgentState
 from ..agents.extractor import ExtractorNode
+from ..agents.table_generator import TableGeneratorNode
+from ..agents.graph_generator import GraphGeneratorNode
 from ..agents.reviewer import ReviewerNode
 from ..agents.writer import WriterNode
 from ..tools.document_loader import load_documents_from_folder
@@ -12,24 +15,27 @@ class PortfolioAnalysisGraph:
     Defines the LangGraph state machine for the portfolio analysis agent.
     Orchestrates the Extractor, Reviewer, and Writer nodes in an iterative loop.
     """
-    def __init__(self, llm, max_review_loops: int = 2):
+    def __init__(self, max_review_loops: int = 2):
         """
-        Initializes the PortfolioAnalysisGraph with a language model and configuration.
+        Initializes the PortfolioAnalysisGraph with configuration.
+        The LLM will be initialized within run_analysis to support context caching.
 
         Args:
-            llm: An instance of a LangChain-compatible language model.
             max_review_loops (int): The maximum number of times a section can be reviewed and rewritten.
         """
-        self.llm = llm
         self.max_review_loops = max_review_loops
-        self.extractor_node = ExtractorNode(llm)
-        self.reviewer_node = ReviewerNode(llm)
-        self.writer_node = WriterNode(llm)
-        self.graph = self._build_graph()
+        # Nodes will be initialized in run_analysis with the cached LLM
+        self.extractor_node = None
+        self.reviewer_node = None
+        self.writer_node = None
+        self.table_generator_node = None
+        self.graph_generator_node = None
+        self.graph = None # Graph will be built after LLM is ready
 
     def _build_graph(self):
         """
-        Builds the LangGraph state machine.
+        Builds the LangGraph state machine. This method is now called
+        within run_analysis after the LLM and nodes are initialized.
         """
         # Initialize the StateGraph with the AgentState schema.
         # This defines the structure of the data that will be passed between nodes.
@@ -42,6 +48,10 @@ class PortfolioAnalysisGraph:
         workflow.add_node("reviewer", self.reviewer_node.review)
         # "writer": Uses the WriterNode to rewrite content based on critique.
         workflow.add_node("writer", self.writer_node.rewrite)
+        # "table_generator": Generates tabular data for the section.
+        workflow.add_node("table_generator", self.table_generator_node.generate_table)
+        # "graph_generator": Generates graph specifications for the section.
+        workflow.add_node("graph_generator", self.graph_generator_node.generate_graph)
 
         # Set the starting point of the graph.
         # The workflow will always begin by calling the "extractor" node.
@@ -84,10 +94,19 @@ class PortfolioAnalysisGraph:
             {
                 # If the decider returns "review", transition back to the "reviewer" node for another loop.
                 "review": "reviewer",
-                # If the decider returns "next_section", the current section's processing ends (END).
-                "next_section": END
+                # If the decider returns "table_generation", transition to the "table_generator" node.
+                "table_generation": "table_generator"
             }
         )
+
+        # After the "writer" node runs, transition to the "table_generator" node.
+        workflow.add_edge("writer", "table_generator")
+
+        # After the "table_generator" node runs, transition to the "graph_generator" node.
+        workflow.add_edge("table_generator", "graph_generator")
+
+        # After the "graph_generator" node runs, the current section's processing ends (END).
+        workflow.add_edge("graph_generator", END)
 
         # Compile the workflow into a runnable LangGraph.
         # This prepares the graph for execution.
@@ -100,7 +119,7 @@ class PortfolioAnalysisGraph:
         to get feedback on the first draft.
         """
         print(f"--- Decider: After ExtractorNode for section '{state.get('current_section')}' ---")
-        return "review"
+        return "review" # Always go to review after extraction
 
     def _decide_next_step_after_review(self, state: AgentState) -> str:
         """
@@ -133,14 +152,16 @@ class PortfolioAnalysisGraph:
         print(f"--- Decider: After WriterNode for section '{state.get('current_section')}' ---")
         loop_count = state.get("loop_count", 0)
 
+        # After writing, if there's still a need for review (e.g., max loops not reached), go back to reviewer.
+        # Otherwise, proceed to table generation.
         if loop_count < self.max_review_loops:
             print(f"Decider: Loops remaining for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to re-review.")
             return "review"
         else:
-            print(f"Decider: Max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Moving to next section.")
-            return "next_section"
+            print(f"Decider: Max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to table generation.")
+            return "table_generation" # New transition to table generation
 
-    def run_analysis(self, loaded_docs: List[Dict[str, Any]], sections: List[str]):
+    def run_analysis(self, llm: Any, loaded_docs: List[Dict[str, Any]], sections: List[str]):
         """
         Executes the entire portfolio analysis process using the defined LangGraph.
         It initializes the agent state with pre-loaded documents, and then iteratively processes
@@ -157,13 +178,22 @@ class PortfolioAnalysisGraph:
                                   a fully processed and refined section of the analysis.
                                   Each section includes its content and references.
         """
-        # Documents are now pre-loaded and passed directly.
         if not loaded_docs:
             print("No documents provided. Exiting analysis.")
             return []
 
-        # Step 2: Initialize the overall state for the agent.
-        # This state will be passed and updated across different nodes in the graph.
+        # Initialize agent nodes with the provided LLM
+        self.extractor_node = ExtractorNode(llm)
+        self.reviewer_node = ReviewerNode(llm)
+        self.writer_node = WriterNode(llm)
+        self.table_generator_node = TableGeneratorNode(llm)
+        self.graph_generator_node = GraphGeneratorNode(llm)
+        
+        # Build the graph now that nodes are initialized
+        self.graph = self._build_graph()
+        print("--- LangGraph built with cached LLM ---")
+
+        # Initialize the overall state for the agent.
         initial_state: AgentState = {
             "documents": loaded_docs, # All loaded documents available to all nodes.
             "sections_to_process": sections, # List of sections to iterate through.
@@ -171,14 +201,15 @@ class PortfolioAnalysisGraph:
             "current_section": None, # The section currently being worked on by the graph.
             "loop_count": 0, # Tracks review iterations for the current section.
             "critique": None, # Stores feedback from the reviewer for the writer.
+            "tabular_data": None, # Stores generated tabular data for the current section.
+            "graph_spec": None, # Stores generated graph specifications for the current section.
             "messages": [BaseMessage(content="Analysis started.", type="info")] # Log of agent's actions.
         }
 
-        # Step 3: Iterate through each section defined in `sections_to_analyze`.
+        # Iterate through each section defined in `sections_to_analyze`.
         for section_title in sections:
             print(f"\n--- Starting analysis for section: '{section_title}' ---")
             # Create a copy of the initial state for the current section's processing.
-            # This ensures each section starts with a clean loop count and critique.
             current_section_state = initial_state.copy()
             current_section_state["current_section"] = section_title
             current_section_state["critique"] = None # Reset critique for each new section.
@@ -206,7 +237,6 @@ class PortfolioAnalysisGraph:
                 initial_state["completed_sections"].append(found_section)
             else:
                 print(f"Warning: No finalized content found for section '{section_title}'.")
-
 
         print("\n--- Portfolio Analysis Completed ---")
 
