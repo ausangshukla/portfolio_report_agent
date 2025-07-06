@@ -40,7 +40,7 @@ class WriterNode:
              'content': The rewritten and improved content for the section.
              'references': An updated list of dictionaries, each with 'document' (filename) and 'location' (page/row).
              """),
-            ("user", "Section Title: {section_title}")
+            ("user", "Section Title: {section_title}\n{section_instruction}")
         ])
         self.parser = JsonOutputParser()
         self.chain = self.prompt | self.llm | self.parser
@@ -57,6 +57,7 @@ class WriterNode:
                             rewritten section content and references.
         """
         current_section_title = state.get("current_section")
+        current_section_instruction = state.get("current_section_instruction", "")
         critique = state.get("critique")
         documents = state.get("documents")
         original_content = state.get("current_section_content", "") # Get content from current_section_content
@@ -93,7 +94,8 @@ class WriterNode:
                 "section_title": current_section_title,
                 "critique": critique,
                 "original_content": original_content,
-                "new_information": new_information
+                "new_information": new_information,
+                "section_instruction": current_section_instruction
             }
             rewrite_result = self.chain.invoke(rewrite_input)
 

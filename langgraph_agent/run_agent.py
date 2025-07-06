@@ -39,13 +39,25 @@ def main():
     #         f.write("KPI,Value\nRevenue,100M\nProfit,20M\nCustomers,500K")
 
     # Define the sections to analyze
+    # Each section can now have a title and an instruction for the LLM, separated by a colon.
+    # The part before the colon is the section title, and the part after is the instruction.
     sections_to_analyze = [
-        "Overview",
-        "Strategic Insights",
-        "Financial Review",
-        # "Risks",
+        "Executive Summary: Highlight the key investment thesis for the company and summarize the main financial and operating metrics in a concise table.",
+        "Overview: Provide a brief overview of the company, including its history, mission, and key products or services. Also include founder and key management. No graphs.",
+        "Strategic Insights: Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives.",
+        "Financial Review: Analyze the financial performance of the company, including revenue, profit margins, and key financial ratios. Include a table with key financial metrics. Add multiple graphs to visualize trends.",
+        "Risks: Identify and analyze the key risks facing the company, including market, operational, and financial risks. Provide a risk matrix to visualize the impact and likelihood of each risk. No graphs",
         # "Competition" # This section might not have direct content in sample, testing robustness
     ]
+
+    # Parse sections_to_analyze into a list of dictionaries with 'title' and 'instruction'
+    parsed_sections = []
+    for section_entry in sections_to_analyze:
+        if ":" in section_entry:
+            title, instruction = section_entry.split(":", 1)
+            parsed_sections.append({"title": title.strip(), "instruction": instruction.strip()})
+        else:
+            parsed_sections.append({"title": section_entry.strip(), "instruction": ""})
 
     # Initialize and run the graph
     print("Initializing Portfolio Analysis Agent...")
@@ -76,7 +88,7 @@ def main():
         f.write("[\n") # Start JSON array
         
         first_section = True
-        for section_report in agent_graph.run_analysis(llm, loaded_docs, sections_to_analyze):
+        for section_report in agent_graph.run_analysis(llm, loaded_docs, parsed_sections):
             print(f"--- Debug: Section report yielded to run_agent.py: {section_report} ---")
             if not first_section:
                 f.write(",\n") # Add comma for subsequent sections

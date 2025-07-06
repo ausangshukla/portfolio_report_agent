@@ -109,7 +109,7 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                 {% endif %}
             {% endif %}
 
-            {% if section.references %}
+            {% if False and section.references %}
                 <div class="references">
                     <h3>References</h3>
                     <ul>

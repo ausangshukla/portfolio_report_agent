@@ -161,7 +161,7 @@ class PortfolioAnalysisGraph:
             print(f"Decider: Max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to table generation.")
             return "table_generation" # New transition to table generation
 
-    def run_analysis(self, llm: Any, loaded_docs: List[Dict[str, Any]], sections: List[str]):
+    def run_analysis(self, llm: Any, loaded_docs: List[Dict[str, Any]], sections: List[Dict[str, str]]):
         """
         Executes the entire portfolio analysis process using the defined LangGraph.
         It initializes the agent state with pre-loaded documents, and then iteratively processes
@@ -169,9 +169,8 @@ class PortfolioAnalysisGraph:
 
         Args:
             loaded_docs (List[Dict[str, Any]]): A list of pre-loaded documents, each with 'filename', 'content', and 'metadata'.
-            sections (List[str]): A list of strings, where each string is the title
-                                  of a section to be generated in the analysis report
-                                  (e.g., "Overview", "Financial Review", "Risks").
+            sections (List[Dict[str, str]]): A list of dictionaries, where each dictionary contains
+                                            'title' (the section title) and 'instruction' (additional LLM instruction).
 
         Returns:
             List[Dict[str, Any]]: A list of dictionaries, where each dictionary represents
@@ -198,7 +197,8 @@ class PortfolioAnalysisGraph:
             "documents": loaded_docs, # All loaded documents available to all nodes.
             "sections_to_process": sections, # List of sections to iterate through.
             "completed_sections": [], # Accumulates the final versions of processed sections.
-            "current_section": None, # The section currently being worked on by the graph.
+            "current_section": None, # The section title currently being worked on by the graph.
+            "current_section_instruction": None, # The instruction for the current section.
             "loop_count": 0, # Tracks review iterations for the current section.
             "critique": None, # Stores feedback from the reviewer for the writer.
             "tabular_data": None, # Stores generated tabular data for the current section.
@@ -207,11 +207,14 @@ class PortfolioAnalysisGraph:
         }
 
         # Iterate through each section defined in `sections_to_analyze`.
-        for section_title in sections:
-            print(f"\n--- Starting analysis for section: '{section_title}' ---")
+        for section_info in sections:
+            section_title = section_info["title"]
+            section_instruction = section_info["instruction"]
+            print(f"\n--- Starting analysis for section: '{section_title}' with instruction: '{section_instruction}' ---")
             # Create a copy of the initial state for the current section's processing.
             current_section_state = initial_state.copy()
             current_section_state["current_section"] = section_title
+            current_section_state["current_section_instruction"] = section_instruction
             current_section_state["critique"] = None # Reset critique for each new section.
             current_section_state["loop_count"] = 0 # Reset loop count for each new section.
 
@@ -232,6 +235,7 @@ class PortfolioAnalysisGraph:
             # consolidate all relevant data for the current section and add it to completed_sections.
             finalized_section = {
                 "section": section_title,
+                "instruction": section_instruction, # Include the instruction in the finalized report
                 "content": final_state_after_stream.get("current_section_content", ""),
                 "references": final_state_after_stream.get("current_section_references", []),
                 "tabular_data": final_state_after_stream.get("tabular_data", None),

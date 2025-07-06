@@ -38,8 +38,9 @@ class ReviewerNode:
                  "remove_or_rephrase": ["The company is good."],
                  "search_terms": ["market share 2023", "Q4 2023 earnings"]
              }}
+             
              """),
-            ("user", "Section Title: {section_title}\n\nSection Content:\n{section_content}")
+            ("user", "Section Title: {section_title}\n\nSection Content:\n{section_content}\n{section_instruction}")
         ])
         self.parser = JsonOutputParser()
         self.chain = self.prompt | self.llm | self.parser
@@ -55,6 +56,7 @@ class ReviewerNode:
             Dict[str, Any]: A dictionary containing the updated state with the critique.
         """
         current_section_title = state.get("current_section")
+        current_section_instruction = state.get("current_section_instruction", "")
         current_section_content = state.get("current_section_content", "") # Get content directly from state
         current_section_references = state.get("current_section_references", []) # Get references directly from state
 
@@ -72,7 +74,8 @@ class ReviewerNode:
         try:
             review_input = {
                 "section_title": current_section_title,
-                "section_content": current_section_content
+                "section_content": current_section_content,
+                "section_instruction": current_section_instruction
             }
             critique_result = self.chain.invoke(review_input)
 
@@ -126,6 +129,7 @@ if __name__ == "__main__":
             }
         ],
         "current_section": "Overview",
+        "current_section_instruction": "Be very critical.",
         "loop_count": 0,
         "critique": None,
         "messages": []
@@ -143,6 +147,7 @@ if __name__ == "__main__":
         "sections_to_process": [],
         "completed_sections": [], # No completed sections
         "current_section": "NonExistentSection",
+        "current_section_instruction": "",
         "loop_count": 0,
         "critique": None,
         "messages": []
