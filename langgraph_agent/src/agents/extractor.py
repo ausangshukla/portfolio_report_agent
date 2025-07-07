@@ -35,6 +35,7 @@ class ExtractorNode:
             Focus on extracting factual information and key insights from the documents.
             You must structure your output as a JSON object with a single key: "sub_sections".
             The value of "sub_sections" must be a list of JSON objects, where each object represents a sub-section and has two keys: "title" and "content".
+            The 'content' field MUST NOT contain any markdown formatting (e.g., ###, **, -, *, `). It should be plain text.
 
             Analyze the documents provided and identify distinct topics or points that can be presented as sub-sections. For each sub-section, create a concise title and write the corresponding content based on the information in the documents.
 
@@ -156,7 +157,7 @@ class ExtractorNode:
             # 6. Update the state
             return {
                 "current_section_content": formatted_content, # Populate with formatted content for reviewer
-                "current_section_sub_sections": sub_sections, # Pass the structured sub_sections
+                "current_section_sub_sections": [s.dict() for s in sub_sections], # Pass the structured sub_sections as dictionaries
                 "current_section_references": references,
                 "messages": state.get("messages", []) + [
                     BaseMessage(content=f"ExtractorNode: Initial draft for '{current_section_title}' created.", type="tool_output")

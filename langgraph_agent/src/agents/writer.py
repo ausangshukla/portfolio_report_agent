@@ -97,7 +97,7 @@ class WriterNode:
             original_sub_sections_json = json.dumps([{"title": "Content", "content": original_content}])
         else:
             # Convert Pydantic objects to dictionaries before dumping to JSON
-            original_sub_sections_json = json.dumps([s.dict() for s in current_section_sub_sections])
+            original_sub_sections_json = json.dumps(current_section_sub_sections)
  
         print(f"--- WriterNode: Rewriting section '{current_section_title}' (Loop: {state.get('loop_count')}) ---")
  
