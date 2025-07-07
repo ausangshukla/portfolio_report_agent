@@ -2,9 +2,9 @@ from typing import Dict, Any, List
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.messages import BaseMessage
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from ..state import AgentState # Assuming AgentState is in src/state.py
-
+import json # Added for json.dumps
 class SubSection(BaseModel):
     title: str = Field(description="The title of the sub-section.")
     content: str = Field(description="The content of the sub-section.")
@@ -30,12 +30,12 @@ class WriterNode:
             ("system", """You are an expert financial report writer. Your task is to
              rewrite the provided section of a portfolio analysis report based on the
              given critique and any new information found from targeted searches.
-
+ 
              Critique:
              {critique}
  
-             Original Section Content:
-             {original_content}
+             Original Section Sub-sections (JSON format):
+             {original_sub_sections}
  
              New Information from Targeted Search (if any):
              {new_information}
@@ -46,15 +46,15 @@ class WriterNode:
  
              Output your response as a JSON object with one key:
              'sub_sections': A list of sub-section objects, each with a 'title' and 'content' key.
-             Your output MUST be ONLY the JSON object, with no other text or markdown outside of it.
+             Your output MUST be ONLY the JSON object, with no markdown.
              Example:
              {{"sub_sections": [{{"title": "Introduction", "content": "..."}}, {{"title": "Analysis", "content": "..."}}]}}
              """),
             ("user", "Section Title: {section_title}\n{section_instruction}")
         ])
-        self.parser = JsonOutputParser(pydantic_object=RewrittenSection)
-        self.chain = self.prompt | self.llm | self.parser
-
+        self.parser = JsonOutputParser()
+        self.chain = self.prompt | self.llm
+ 
     def rewrite(self, state: AgentState) -> Dict[str, Any]:
         """
         Rewrites the current section's content based on critique and new information.
@@ -66,12 +66,14 @@ class WriterNode:
             Dict[str, Any]: A dictionary containing the updated state with the
                             rewritten section content and references.
         """
+
         current_section_title = state.get("current_section")
         current_section_instruction = state.get("current_section_instruction", "")
         critique = state.get("critique")
         documents = state.get("documents")
         original_content = state.get("current_section_content", "") # Get content from current_section_content
         original_references = state.get("current_section_references", []) # Get references from current_section_references
+        current_section_sub_sections = state.get("current_section_sub_sections", [])
 
         if not current_section_title:
             raise ValueError("No current section specified in the agent state.")
@@ -82,28 +84,34 @@ class WriterNode:
                     BaseMessage(content=f"WriterNode: No critique for '{current_section_title}'. Skipping rewrite.", type="info")
                 ]
             }
-
-        if not original_content:
-            print(f"WriterNode: No original content found for section '{current_section_title}'. Cannot rewrite.")
-            return {
-                "messages": state.get("messages", []) + [
-                    BaseMessage(content=f"WriterNode: No original content for '{current_section_title}'. Cannot rewrite.", type="error")
-                ]
-            }
-
+ 
+        # If there are no sub-sections, use the original_content string
+        if not current_section_sub_sections:
+            if not original_content:
+                print(f"WriterNode: No original content found for section '{current_section_title}'. Cannot rewrite.")
+                return {
+                    "messages": state.get("messages", []) + [
+                        BaseMessage(content=f"WriterNode: No original content for '{current_section_title}'. Cannot rewrite.", type="error")
+                    ]
+                }
+            original_sub_sections_json = json.dumps([{"title": "Content", "content": original_content}])
+        else:
+            # Convert Pydantic objects to dictionaries before dumping to JSON
+            original_sub_sections_json = json.dumps([s.dict() for s in current_section_sub_sections])
+ 
         print(f"--- WriterNode: Rewriting section '{current_section_title}' (Loop: {state.get('loop_count')}) ---")
-
+ 
         # Simulate targeted search based on critique's search terms
         # In a real implementation, this would involve a more sophisticated RAG approach
         new_information = self._perform_targeted_search(documents, critique.get("search_terms", []))
         if new_information != "No new information found for search terms.":
             print(f"WriterNode: New information found for '{current_section_title}'.")
-
+ 
         try:
             rewrite_input = {
                 "section_title": current_section_title,
                 "critique": critique,
-                "original_content": original_content,
+                "original_sub_sections": original_sub_sections_json, # Pass structured sub-sections
                 "new_information": new_information,
                 "section_instruction": current_section_instruction
             }
@@ -115,25 +123,41 @@ class WriterNode:
                 cleaned_output = cleaned_output[len("```json"): -len("```")].strip()
             elif cleaned_output.startswith("```") and cleaned_output.endswith("```"):
                 cleaned_output = cleaned_output[len("```"): -len("```")].strip()
-
-            rewrite_result = self.parser.parse(cleaned_output)
-
-            # Ensure the output matches the expected JSON structure
-            rewritten_sub_sections = rewrite_result.get("sub_sections", [])
+ 
+            parsed_dict = self.parser.parse(cleaned_output)
+ 
+            # Manually create the Pydantic object for validation
+            try:
+                rewrite_result = RewrittenSection(**parsed_dict)
+            except Exception as pydantic_error:
+                print(f"WriterNode: Pydantic validation failed for '{current_section_title}': {pydantic_error}")
+                raise
             
-            # Format sub_sections into a single content string for now, if needed by subsequent nodes
-            formatted_content = ""
+            rewritten_sub_sections = rewrite_result.sub_sections
+            print(f"WriterNode: Generated rewritten_sub_sections for '{current_section_title}': {rewritten_sub_sections}") # Debug print
+            
+            # Fallback: If LLM returns empty sub_sections, create a default one from original content
+            if not rewritten_sub_sections and original_content:
+                print(f"WriterNode: LLM returned empty sub_sections. Creating fallback sub-section from original content for '{current_section_title}'.")
+                rewritten_sub_sections = [{"title": "Content", "content": original_content}]
+            elif not rewritten_sub_sections:
+                print(f"WriterNode: LLM returned empty sub_sections and no original content. Defaulting to empty list for '{current_section_title}'.")
+                rewritten_sub_sections = [] # Ensure it's an empty list if no content at all
+ 
+            # Format sub_sections into a single markdown content string for the reviewer
+            # This is for the 'content' field in the state, which is used for review.
+            # The structured sub_sections are stored in 'current_section_sub_sections'.
+            markdown_content_for_review = ""
             for sub_section in rewritten_sub_sections:
-                formatted_content += f"### {sub_section.get('title', 'Untitled Sub-section')}\n"
-                formatted_content += f"{sub_section.get('content', '')}\n\n"
-
+                markdown_content_for_review += f"### {sub_section.title}\n{sub_section.content}\n\n"
+ 
             updated_references = [] # References are no longer generated by the writer
-
+ 
             # Update the specific section in completed_sections
             # Update the state, including incrementing loop_count
             return {
-                "current_section_content": formatted_content, # Update current_section_content
-                "current_section_sub_sections": rewritten_sub_sections, # Store structured sub-sections
+                "current_section_content": markdown_content_for_review, # Update current_section_content with markdown
+                "current_section_sub_sections": [s.dict() for s in rewritten_sub_sections], # Store structured sub-sections as dictionaries
                 "current_section_references": updated_references, # Store references separately
                 "loop_count": state.get("loop_count", 0) + 1, # Increment loop_count here
                 "messages": state.get("messages", []) + [
@@ -148,7 +172,7 @@ class WriterNode:
                     BaseMessage(content=error_message, type="error")
                 ]
             }
-
+ 
     def _perform_targeted_search(self, documents: List[Dict[str, Any]], search_terms: List[str]) -> str:
         """
         Simulates a targeted search within documents based on search terms.
@@ -156,7 +180,7 @@ class WriterNode:
         """
         if not search_terms:
             return "No specific search terms provided."
-
+ 
         found_info = []
         for term in search_terms:
             for doc in documents:
@@ -167,66 +191,4 @@ class WriterNode:
                     # In a real scenario, you'd extract relevant snippets, not whole content
                     found_info.append(f"Found '{term}' in {filename}:\n{content[:200]}...") # Snippet
         return "\n".join(found_info) if found_info else "No new information found for search terms."
-
-
-if __name__ == "__main__":
-    from langchain_community.llms import FakeListLLM
-    from ..state import AgentState
-
-    # Mock LLM for testing
-    mock_llm = FakeListLLM(responses=[
-        '{"content": "This is the improved overview, incorporating market trends from doc3."}'
-    ])
-
-    writer = WriterNode(llm=mock_llm)
-
-    # Mock initial state with a completed section and a critique
-    initial_state: AgentState = {
-        "documents": [
-            {"filename": "doc1.txt", "content": "Company overview: This is a test document for company A."},
-            {"filename": "doc3.txt", "content": "Market trends: The market is growing rapidly in 2024."}
-        ],
-        "sections_to_process": [],
-        "completed_sections": [
-            {
-                "section": "Overview",
-                "content": "This is a basic overview of the company. The company is good.",
-                "references": [{"document": "doc1.txt", "location": "page 1"}]
-            }
-        ],
-        "current_section": "Overview",
-        "loop_count": 0,
-        "critique": {
-            "expand_on": ["more details on market trends"],
-            "remove_or_rephrase": ["The company is good."],
-            "search_terms": ["market trends 2024", "industry outlook"]
-        },
-        "messages": []
-    }
-
-    print("\n--- Running WriterNode for 'Overview' ---")
-    updated_state = writer.rewrite(initial_state)
-    print("Updated State:")
-    print(updated_state["completed_sections"])
-    print(updated_state["messages"])
-
-    # Simulate no critique
-    initial_state_no_critique: AgentState = {
-        "documents": [],
-        "sections_to_process": [],
-        "completed_sections": [
-            {
-                "section": "Overview",
-                "content": "This is a basic overview.",
-                "references": []
-            }
-        ],
-        "current_section": "Overview",
-        "loop_count": 0,
-                "critique": None, # No critique
-        "messages": []
-    }
-    print("\n--- Running WriterNode with no critique ---")
-    updated_state_no_critique = writer.rewrite(initial_state_no_critique)
-    print("Updated State:")
-    print(updated_state_no_critique["messages"])
+ 

@@ -40,6 +40,7 @@ class AgentState(TypedDict):
     critique: Optional[Dict[str, Any]]
     current_section_content: Optional[str]
     current_section_references: List[Dict[str, Any]]
+    current_section_sub_sections: List[Dict[str, Any]] # Added to persist structured sub-sections
     tabular_data: Optional[Dict[str, Any]]
     graph_specs: Optional[List[Dict[str, Any]]] # Changed to graph_specs (plural) and type to List
     messages: List[BaseMessage]

@@ -15,7 +15,7 @@ class PortfolioAnalysisGraph:
     Defines the LangGraph state machine for the portfolio analysis agent.
     Orchestrates the Extractor, Reviewer, and Writer nodes in an iterative loop.
     """
-    def __init__(self, max_review_loops: int = 1):
+    def __init__(self, max_review_loops: int = 0):
         """
         Initializes the PortfolioAnalysisGraph with configuration.
         The LLM will be initialized within run_analysis to support context caching.
@@ -129,7 +129,8 @@ class PortfolioAnalysisGraph:
         print(f"--- Decider: After ReviewerNode for section '{state.get('current_section')}' ---")
         critique = state.get("critique")
         loop_count = state.get("loop_count", 0)
-
+        print(f"Decider: Critique content after ReviewerNode: {critique}") # Debug print
+ 
         if critique and (critique.get("expand_on") or critique.get("remove_or_rephrase")) and loop_count < self.max_review_loops:
             print(f"Decider: Critique present for '{state.get('current_section')}'. Loops remaining ({loop_count}/{self.max_review_loops}). Proceeding to rewrite.")
             return "rewrite"
@@ -148,7 +149,8 @@ class PortfolioAnalysisGraph:
         """
         print(f"--- Decider: After WriterNode for section '{state.get('current_section')}' ---")
         loop_count = state.get("loop_count", 0)
-
+        print(f"Decider: Sub-sections after WriterNode: {state.get('current_section_sub_sections', [])}") # Debug print
+ 
         # After writing, if there's still a need for review (e.g., max loops not reached), go back to reviewer.
         # Otherwise, proceed to table generation.
         if loop_count < self.max_review_loops:
@@ -224,21 +226,24 @@ class PortfolioAnalysisGraph:
                 # We need to unwrap this to get the actual state update.
                 node_output = list(s.values())[0]
                 current_section_state.update(node_output)
-                final_state_after_stream = current_section_state # Keep track of the final state
+                # It's crucial to ensure final_state_after_stream is updated with the latest state
+                final_state_after_stream = current_section_state.copy() # Create a copy to avoid reference issues
                 print(f"--- Debug: State after stream step {i} for '{section_title}': {current_section_state} ---")
-
+ 
             print(f"--- Debug: Final state after stream for '{section_title}': {final_state_after_stream} ---")
+            print(f"--- Debug: current_section_content in final state: {final_state_after_stream.get('current_section_content', '')[:500]}... ---")
+            print(f"--- Debug: current_section_sub_sections in final state: {final_state_after_stream.get('current_section_sub_sections', [])} ---")
 
             # After the graph for a single section completes (reaches END),
             # consolidate all relevant data for the current section and add it to completed_sections.
             finalized_section = {
                 "section": section_title,
                 "instruction": section_instruction, # Include the instruction in the finalized report
-                "content": final_state_after_stream.get("current_section_content", ""), # Keep for backward compatibility if needed
-                "sub_sections": final_state_after_stream.get("current_section_sub_sections", []), # New: Store structured sub-sections
+                "content": final_state_after_stream.get("current_section_content", ""),
+                "sub_sections": final_state_after_stream.get("current_section_sub_sections", []),
                 "references": final_state_after_stream.get("current_section_references", []),
                 "tabular_data": final_state_after_stream.get("tabular_data", None),
-                "graph_specs": final_state_after_stream.get("graph_specs", []) # Changed to graph_specs (plural)
+                "graph_specs": final_state_after_stream.get("graph_specs", [])
             }
             
             print(f"--- Finalized section '{section_title}' ---")
@@ -248,6 +253,6 @@ class PortfolioAnalysisGraph:
             # This is crucial for subsequent sections to have access to previously
             # completed sections if needed for context.
             initial_state["completed_sections"].append(finalized_section)
-
+ 
         print("\n--- Portfolio Analysis Completed ---")
 

@@ -35,26 +35,31 @@ def generate_html_report(json_report_path: str, output_html_path: str):
     <title>Portfolio Analysis Report</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Universal box-sizing for consistent layout */
+        * {
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary-color: #87CEEB; /* Sky Blue - Pastel */
-            --secondary-color: #ADD8E6; /* Light Blue - Pastel */
-            --accent-color: #90EE90; /* Light Green - Pastel */
-            --text-color: #4A4A4A; /* Darker Gray for readability */
-            --light-text-color: #778899; /* Light Slate Gray */
-            --bg-color: #F0F8FF; /* Alice Blue - Very Light */
-            --card-bg: #FFFFFF; /* White */
-            --border-color: #E0E0E0; /* Lighter Border Gray */
-            --shadow-light: rgba(0, 0, 0, 0.05);
-            --shadow-medium: rgba(0, 0, 0, 0.10);
-            --hover-bg: #E6F7FF; /* Lighter Blue for hover */
-            --code-bg: #F5F5DC; /* Beige - Code background */
-            --code-inline-bg: #FFFACD; /* Lemon Chiffon - Inline code background */
-            --blockquote-bg: #E6F0FA; /* Light Steel Blue - Blockquote background */
+            --primary-color: #3498db; /* A professional, vibrant blue */
+            --secondary-color: #2ecc71; /* A complementary green */
+            --accent-color: #e67e22; /* A warm orange for highlights */
+            --text-color: #333333; /* Dark gray for main text */
+            --light-text-color: #666666; /* Medium gray for secondary text */
+            --bg-color: #f8f9fa; /* Very light gray background */
+            --card-bg: #ffffff; /* White for card backgrounds */
+            --border-color: #e9ecef; /* Light gray for borders */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --hover-bg: #eaf2f8; /* Light blue for hover effects */
+            --code-bg: #f4f4f4; /* Light gray for code blocks */
+            --code-inline-bg: #eeeeee; /* Slightly darker gray for inline code */
+            --blockquote-bg: #eef4f7; /* Light blue-gray for blockquotes */
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.7;
+            font-family: 'Roboto', 'Inter', 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
@@ -65,54 +70,54 @@ def generate_html_report(json_report_path: str, output_html_path: str):
         }
 
         .container {
-            max-width: 1100px;
-            margin: 30px auto;
+            max-width: 1000px;
+            margin: 40px auto;
             background: var(--card-bg);
-            padding: 40px 50px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px var(--shadow-medium);
+            padding: 40px 60px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px var(--shadow-medium);
             border: 1px solid var(--border-color);
         }
 
         h1, h2, h3, h4, h5, h6 {
             color: var(--primary-color);
-            margin-top: 1.8em;
-            margin-bottom: 0.7em;
+            margin-top: 2em;
+            margin-bottom: 0.8em;
             font-weight: 700;
-            line-height: 1.3;
+            line-height: 1.2;
         }
 
         h1 {
-            font-size: 2.8em;
-            border-bottom: 3px solid var(--primary-color);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            font-size: 3em;
+            border-bottom: 4px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
             text-align: center;
             color: var(--primary-color);
         }
-        h2 { font-size: 2.2em; color: var(--secondary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-        h3 { font-size: 1.7em; color: var(--primary-color); }
-        h4 { font-size: 1.4em; color: var(--text-color); }
+        h2 { font-size: 2.4em; color: var(--secondary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        h3 { font-size: 1.8em; color: var(--primary-color); }
+        h4 { font-size: 1.5em; color: var(--text-color); }
 
         p {
-            margin-bottom: 1.2em;
+            margin-bottom: 1.5em;
             color: var(--light-text-color);
         }
 
         table {
             width: 100%;
-            border-collapse: separate; /* Use separate for border-spacing */
-            border-spacing: 0; /* Remove space between borders */
+            border-collapse: collapse; /* Use collapse for cleaner borders */
             margin-bottom: 30px;
             box-shadow: 0 4px 15px var(--shadow-light);
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden; /* Ensures rounded corners apply to inner elements */
             background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
         }
 
         th, td {
-            border: none; /* Remove individual cell borders */
-            padding: 15px 20px;
+            border: 1px solid var(--border-color); /* Add subtle borders */
+            padding: 12px 18px;
             text-align: left;
             vertical-align: middle;
         }
@@ -120,176 +125,175 @@ def generate_html_report(json_report_path: str, output_html_path: str):
         th {
             background-color: var(--primary-color);
             color: #fff;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.9em;
-            letter-spacing: 0.05em;
+            font-size: 0.85em;
+            letter-spacing: 0.08em;
             position: sticky;
             top: 0;
         }
 
-        th:first-child { border-top-left-radius: 10px; }
-        th:last-child { border-top-right-radius: 10px; }
-
         tr:nth-child(even) {
-            background-color: #f8f9fa; /* Lighter shade for even rows */
+            background-color: #f2f2f2; /* Lighter shade for even rows */
         }
 
         tr:hover {
             background-color: var(--hover-bg); /* Hover effect for rows */
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease-in-out;
         }
 
         td {
-            border-bottom: 1px solid var(--border-color);
-        }
-        tr:last-child td {
-            border-bottom: none;
+            font-size: 0.95em;
         }
 
         .chart-container {
             position: relative;
-            height: 500px; /* Taller charts for better visualization */
+            height: 450px; /* Adjusted height for better balance */
             width: 100%;
             margin-bottom: 40px;
             background: var(--card-bg);
-            padding: 25px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px var(--shadow-light);
+            box-shadow: 0 6px 20px var(--shadow-light);
             border: 1px solid var(--border-color);
         }
 
         .references {
-            margin-top: 50px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 30px;
+            margin-top: 60px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 40px;
             background-color: var(--bg-color);
-            padding: 25px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .references h3 {
             color: var(--primary-color);
             margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-size: 2em;
             text-align: center;
         }
 
         .references ul {
-            list-style: none; /* Remove default bullet */
+            list-style: none;
             padding-left: 0;
             margin: 0;
         }
 
         .references li {
-            margin-bottom: 10px;
-            font-size: 0.95em;
+            margin-bottom: 12px;
+            font-size: 1em;
             color: var(--light-text-color);
-            padding-left: 25px;
+            padding-left: 30px;
             position: relative;
         }
 
         .references li:before {
-            content: "•"; /* Custom bullet point */
+            content: "•";
             color: var(--accent-color);
             position: absolute;
             left: 0;
-            font-size: 1.2em;
+            font-size: 1.3em;
             line-height: 1;
+            top: 2px;
         }
 
         /* Markdown specific styles */
         div pre {
             background-color: var(--code-bg);
             border: 1px solid var(--border-color);
-            border-left: 6px solid var(--secondary-color);
-            padding: 18px;
+            border-left: 8px solid var(--secondary-color);
+            padding: 20px;
             border-radius: 8px;
             overflow-x: auto;
             font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-            font-size: 0.95em;
-            line-height: 1.5;
-            margin-bottom: 1.8em;
-            box-shadow: inset 0 1px 5px rgba(0,0,0,0.05);
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-bottom: 2em;
+            box-shadow: inset 0 1px 8px rgba(0,0,0,0.05);
         }
 
         div code {
             background-color: var(--code-inline-bg);
-            padding: 3px 7px;
-            border-radius: 5px;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: var(--primary-color);
         }
 
         div blockquote {
-            border-left: 5px solid var(--accent-color);
-            margin: 1.8em 0;
-            padding: 0.8em 20px;
+            border-left: 6px solid var(--accent-color);
+            margin: 2em 0;
+            padding: 1em 25px;
             background-color: var(--blockquote-bg);
             color: var(--light-text-color);
             font-style: italic;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
         }
 
         div ul, div ol {
-            margin-bottom: 1.5em;
-            padding-left: 30px;
+            margin-bottom: 1.8em;
+            padding-left: 35px;
         }
 
         div ul li, div ol li {
-            margin-bottom: 0.7em;
+            margin-bottom: 0.8em;
             color: var(--light-text-color);
         }
 
         /* Header and Footer */
         .report-header {
             text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
+            margin-bottom: 50px;
+            padding-bottom: 25px;
             border-bottom: 1px solid var(--border-color);
         }
 
         .report-header h1 {
-            font-size: 3.5em;
+            font-size: 3.8em;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border-bottom: none;
             padding-bottom: 0;
         }
 
         .report-header p {
-            font-size: 1.2em;
+            font-size: 1.3em;
             color: var(--light-text-color);
             margin-top: 0;
         }
 
         .report-footer {
             text-align: center;
-            margin-top: 50px;
-            padding-top: 20px;
+            margin-top: 60px;
+            padding-top: 25px;
             border-top: 1px solid var(--border-color);
-            font-size: 0.9em;
+            font-size: 0.95em;
             color: var(--light-text-color);
         }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
             body {
-                padding: 15px;
+                padding: 10px;
             }
             .container {
-                margin: 15px auto;
-                padding: 25px 30px;
+                margin: 20px auto;
+                padding: 30px 25px;
             }
-            h1 { font-size: 2.2em; }
-            h2 { font-size: 1.8em; }
-            h3 { font-size: 1.4em; }
+            h1 { font-size: 2.5em; }
+            h2 { font-size: 2em; }
+            h3 { font-size: 1.6em; }
             .chart-container {
-                height: 350px;
+                height: 300px;
+                padding: 20px;
+            }
+            th, td {
+                padding: 10px 12px;
             }
         }
 
@@ -330,10 +334,10 @@ def generate_html_report(json_report_path: str, output_html_path: str):
             {% if section.sub_sections %}
                 {% for sub_section in section.sub_sections %}
                     <h3>{{ sub_section.title }}</h3>
-                    <div>{{ sub_section.content | markdown_to_html }}</div>
+                    <div>{{ sub_section.content }}</div>
                 {% endfor %}
             {% else %}
-                <div>{{ section.content | markdown_to_html }}</div>
+                <div>{{ section.content }}</div>
             {% endif %}
 
             {% if section.tabular_data %}
