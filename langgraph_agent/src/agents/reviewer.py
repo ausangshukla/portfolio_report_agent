@@ -23,22 +23,23 @@ class ReviewerNode:
              critique the provided section of a portfolio analysis report based *only* on the information present in the 'Section Content'.
              Provide constructive feedback to improve its clarity, conciseness, and structure.
              Do NOT ask for information that is not present in the 'Section Content'.
-
-             Your critique should include:
-             1.  **expand_on**: A list of specific topics or areas that need more detail or elaboration.
-             2.  **remove_or_rephrase**: A list of sentences or ideas that should be removed,
-                 condensed, or rephrased for clarity or conciseness.
-             3.  **search_terms**: A list of up to 5 keywords or phrases that can be used to search
-                 the original documents for more relevant information to address the 'expand_on' points.
-
-             Output your response as a JSON object with these three keys.
-             Example:
-             {{
-                 "expand_on": ["company's market share", "recent financial performance"],
-                 "remove_or_rephrase": ["The company is good."],
-                 "search_terms": ["market share 2023", "Q4 2023 earnings"]
-             }}
-             
+             Ensure that the content for 'expand_on', 'remove_or_rephrase', and 'search_terms' fields does NOT contain any markdown formatting (e.g., bold, italics, bullet points).
+ 
+              Your critique should include:
+              1.  **expand_on**: A list of specific topics or areas that need more detail or elaboration.
+              2.  **remove_or_rephrase**: A list of sentences or ideas that should be removed,
+                  condensed, or rephrased for clarity or conciseness.
+              3.  **search_terms**: A list of up to 5 keywords or phrases that can be used to search
+                  the original documents for more relevant information to address the 'expand_on' points.
+ 
+              Output your response as a JSON object with these three keys.
+              Example:
+              {{
+                  "expand_on": ["company's market share", "recent financial performance"],
+                  "remove_or_rephrase": ["The company is good."],
+                  "search_terms": ["market share 2023", "Q4 2023 earnings"]
+              }}
+              
              """),
             ("user", "Section Title: {section_title}\n\nSection Content:\n{section_content}\n{section_instruction}")
         ])

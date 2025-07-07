@@ -158,11 +158,14 @@ def generate_html_report(json_report_path: str, output_html_path: str):
             letter-spacing: 0.05em;
             position: sticky;
             top: 0;
-            white-space: nowrap; /* Prevent header text from wrapping */
+            /* Removed white-space: nowrap; to allow header text to wrap */
         }
         th:first-child { border-top-left-radius: 10px; }
         th:last-child { border-top-right-radius: 10px; }
 
+        table {
+            table-layout: fixed; /* Ensure fixed table layout */
+        }
 
         tr:nth-child(even) {
             background-color: var(--hover-bg); /* Use hover-bg for subtle zebra striping */
@@ -426,24 +429,26 @@ def generate_html_report(json_report_path: str, output_html_path: str):
 
             {% if section.tabular_data %}
                 <h3>{{ section.tabular_data.title }}</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            {% for header in section.tabular_data.rows[0].keys() %}
-                                <th>{{ header }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in section.tabular_data.rows %}
+                <div style="overflow-x: auto;"> {# Add responsive wrapper for tables #}
+                    <table>
+                        <thead>
                             <tr>
-                                {% for key, value in row.items() %}
-                                    <td>{{ value if value is not none else '' }}</td>
+                                {% for header in section.tabular_data.rows[0].keys() %}
+                                    <th>{{ header }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for row in section.tabular_data.rows %}
+                                <tr>
+                                    {% for key, value in row.items() %}
+                                        <td>{{ value if value is not none else '' }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% endif %}
 
             {% if section.graph_specs %}

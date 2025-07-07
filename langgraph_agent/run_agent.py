@@ -46,7 +46,7 @@ def main():
     sections_to_analyze = [
         # "Executive Summary: Highlight the key investment thesis for the company and summarize the main financial and operating metrics in a concise table.",
         # "Overview: Provide a brief overview of the company, including its history, mission, and key products or services. Also include founder and key management. No graphs.",
-        # "Strategic Insights: Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives.",
+        "Strategic Insights: Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives.",
         "Financial Review: Analyze the financial performance of the company, including revenue, profit margins, and key financial ratios. Include a table with key financial metrics. Add multiple graphs to visualize trends.",
         # "Risks: Identify and analyze the key risks facing the company, including market, operational, and financial risks. Provide a risk matrix to visualize the impact and likelihood of each risk. No graphs",
         # "Competition" # This section might not have direct content in sample, testing robustness
