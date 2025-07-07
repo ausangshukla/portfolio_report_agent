@@ -27,414 +27,348 @@ def generate_html_report(json_report_path: str, output_html_path: str):
         env.filters['markdown_to_html'] = markdown_to_html
 
         template = env.from_string("""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Analysis Report</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Universal box-sizing for consistent layout */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Portfolio Analysis Report</title>
+            <!-- Bootstrap CSS -->
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+            <!-- Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+                /* Universal box-sizing for consistent layout */
+                *, *::before, *::after {
+                    box-sizing: border-box;
+                }
 
-        :root {
-            --primary-color: #2c3e50; /* Dark Slate Blue - professional */
-            --secondary-color: #3498db; /* Bright Blue - vibrant accent */
-            --accent-color: #e74c3c; /* Muted Red - for highlights/warnings */
-            --text-color: #34495e; /* Darker text for readability */
-            --light-text-color: #7f8c8d; /* Gray for secondary text */
-            --bg-color: #ecf0f1; /* Light Gray - soft background */
-            --card-bg: #ffffff; /* White for card backgrounds */
-            --border-color: #bdc3c7; /* Light border for structure */
-            --shadow-light: rgba(0, 0, 0, 0.05);
-            --shadow-medium: rgba(0, 0, 0, 0.12);
-            --hover-bg: #f5f7f8; /* Very light gray for hover effects */
-            --code-bg: #f8f8f8; /* Light gray for code blocks */
-            --code-inline-bg: #e8e8e8; /* Slightly darker gray for inline code */
-            --blockquote-bg: #f0f6f9; /* Light blue-gray for blockquotes */
-            --header-bg: linear-gradient(135deg, var(--primary-color), #34495e);
-        }
+                :root {
+                    --primary-color: #2c3e50; /* Dark Slate Blue - professional */
+                    --secondary-color: #3498db; /* Bright Blue - vibrant accent */
+                    --accent-color: #e74c3c; /* Muted Red - for highlights/warnings */
+                    --text-color: #34495e; /* Darker text for readability */
+                    --light-text-color: #7f8c8d; /* Gray for secondary text */
+                    --bg-color: #ecf0f1; /* Light Gray - soft background */
+                    --card-bg: #ffffff; /* White for card backgrounds */
+                    --border-color: #bdc3c7; /* Light border for structure */
+                    --shadow-light: rgba(0, 0, 0, 0.05);
+                    --shadow-medium: rgba(0, 0, 0, 0.12);
+                    --hover-bg: #f5f7f8; /* Very light gray for hover effects */
+                    --code-bg: #f8f8f8; /* Light gray for code blocks */
+                    --code-inline-bg: #e8e8e8; /* Slightly darker gray for inline code */
+                    --blockquote-bg: #f0f6f9; /* Light blue-gray for blockquotes */
+                    --header-bg: linear-gradient(135deg, var(--primary-color), #34495e);
+                }
 
-        body {
-            font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
-            line-height: 1.7;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            font-size: 17px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
+                body {
+                    font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+                    line-height: 1.7;
+                    margin: 0;
+                    padding: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                    font-size: 17px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    min-height: 100vh;
+                    padding: 40px 20px;
+                }
 
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            background: var(--card-bg);
-            padding: 50px 70px;
-            border-radius: 12px;
-            box-shadow: 0 15px 40px var(--shadow-medium);
-            border: 1px solid var(--border-color);
-            margin: 0; /* Remove auto margin for flex centering */
-        }
+                .container-fluid {
+                    width: 98% !important;
+                    max-width: 1000px;
+                    background: var(--card-bg);
+                    padding: 50px 70px;
+                    border-radius: 12px;
+                    box-shadow: 0 15px 40px var(--shadow-medium);
+                    border: 1px solid var(--border-color);
+                    margin: 0; /* Remove auto margin for flex centering */
+                }
 
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--primary-color);
-            margin-top: 2.5em;
-            margin-bottom: 1em;
-            font-weight: 700;
-            line-height: 1.3;
-            letter-spacing: -0.02em;
-        }
+                h1, h2, h3, h4, h5, h6 {
+                    color: var(--text-color);
+                    margin-top: 2.5em;
+                    margin-bottom: 1em;
+                    font-weight: 700;
+                    line-height: 1.3;
+                    letter-spacing: -0.02em;
+                }
 
-        h1 {
-            font-size: 3.5em;
-            border-bottom: 5px solid var(--secondary-color);
-            padding-bottom: 25px;
-            margin-bottom: 40px;
-            text-align: center;
-            color: var(--primary-color);
-            background: var(--header-bg);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-        }
-        h2 {
-            font-size: 2.6em;
-            color: var(--secondary-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-top: 3em;
-            font-weight: 600;
-        }
-        h3 {
-            font-size: 2em;
-            color: var(--primary-color);
-            margin-top: 2.5em;
-            font-weight: 600;
-        }
-        h4 { font-size: 1.6em; color: var(--text-color); }
+                h1 {
+                    font-size: 2.5em;
+                    border-bottom: 5px solid var(--secondary-color);
+                    padding-bottom: 25px;
+                    margin-bottom: 40px;
+                    text-align: center;
+                    color: var(--primary-color);
+                    background: var(--header-bg);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+                }
+                h2 {
+                    font-size: 2em;
+                    color: var(--secondary-color);
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 12px;
+                    margin-top: 2em;
+                    font-weight: 600;
+                }
+                h3 {
+                    font-size: 1.5em;
+                    color: var(--primary-color);
+                    margin-top: 1.5em;
+                    font-weight: 600;
+                }
+                h4 { font-size: 1.1em; color: var(--text-color); }
 
-        p {
-            margin-bottom: 1.8em;
-            color: var(--text-color);
-            font-size: 1.05em;
-        }
+                p {
+                    margin-bottom: 1.8em;
+                    color: var(--text-color);
+                    font-size: 1.05em;
+                }
 
-        table {
-            width: 100%;
-            border-collapse: separate; /* Use separate for rounded corners on cells */
-            border-spacing: 0;
-            margin-bottom: 40px;
-            box-shadow: 0 6px 20px var(--shadow-light);
-            border-radius: 10px;
-            overflow: hidden; /* Ensures rounded corners apply to inner elements */
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-        }
-
-        th, td {
-            border: none; /* Remove individual cell borders */
-            padding: 15px 20px;
-            text-align: left;
-            vertical-align: middle;
-            border-bottom: 1px solid var(--border-color); /* Only bottom border for rows */
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: #fff;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.9em;
-            letter-spacing: 0.05em;
-            position: sticky;
-            top: 0;
-            /* Removed white-space: nowrap; to allow header text to wrap */
-        }
-        th:first-child { border-top-left-radius: 10px; }
-        th:last-child { border-top-right-radius: 10px; }
-
-        table {
-            table-layout: fixed; /* Ensure fixed table layout */
-        }
-
-        tr:nth-child(even) {
-            background-color: var(--hover-bg); /* Use hover-bg for subtle zebra striping */
-        }
-
-        tr:hover {
-            background-color: #e0e8ed; /* Slightly darker hover for better feedback */
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        td {
-            font-size: 1em;
-            color: var(--text-color);
-        }
-        tr:last-child td {
-            border-bottom: none; /* Remove bottom border for the last row */
-        }
+                
 
 
-        .chart-container {
-            position: relative;
-            height: 500px; /* Increased height for better chart visibility */
-            width: 100%;
-            margin-bottom: 50px;
-            background: var(--card-bg);
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px var(--shadow-light);
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .chart-container canvas {
-            max-height: 100%;
-            max-width: 100%;
-        }
+                .chart-container {
+                    position: relative;
+                    max-height: 800px; /* Increased height for better chart visibility */
+                    width: 100%;
+                    margin-bottom: 50px;
+                    background: var(--card-bg);
+                    padding: 35px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 25px var(--shadow-light);
+                    border: 1px solid var(--border-color);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .chart-container canvas {
+                    max-height: 100%;
+                    max-width: 100%;
+                }
+                                   
+                .chart-container .card-body {
+                    min-height: 300px;
+                    width: 100%;
+                }
 
 
-        .references {
-            margin-top: 70px;
-            border-top: 2px solid var(--secondary-color);
-            padding-top: 50px;
-            background-color: var(--bg-color);
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: inset 0 3px 15px rgba(0,0,0,0.03);
-        }
+                
 
-        .references h3 {
-            color: var(--secondary-color);
-            margin-top: 0;
-            margin-bottom: 25px;
-            font-size: 2.2em;
-            text-align: center;
-            font-weight: 700;
-        }
+                /* Markdown specific styles */
+                div pre {
+                    background-color: var(--code-bg);
+                    border: 1px solid var(--border-color);
+                    border-left: 10px solid var(--secondary-color);
+                    padding: 25px;
+                    border-radius: 10px;
+                    overflow-x: auto;
+                    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+                    font-size: 0.95em;
+                    line-height: 1.7;
+                    margin-bottom: 2.5em;
+                    box-shadow: inset 0 2px 10px rgba(0,0,0,0.03);
+                }
 
-        .references ul {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
-        }
+                div code {
+                    background-color: var(--code-inline-bg);
+                    padding: 5px 9px;
+                    border-radius: 5px;
+                    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+                    font-size: 0.9em;
+                    color: var(--primary-color);
+                    white-space: nowrap;
+                }
 
-        .references li {
-            margin-bottom: 15px;
-            font-size: 1.05em;
-            color: var(--light-text-color);
-            padding-left: 35px;
-            position: relative;
-            line-height: 1.5;
-        }
+                div blockquote {
+                    border-left: 8px solid var(--accent-color);
+                    margin: 2.5em 0;
+                    padding: 1.2em 30px;
+                    background-color: var(--blockquote-bg);
+                    color: var(--text-color);
+                    font-style: italic;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    line-height: 1.8;
+                }
 
-        .references li:before {
-            content: "•";
-            color: var(--accent-color);
-            position: absolute;
-            left: 0;
-            font-size: 1.5em;
-            line-height: 1;
-            top: 0px;
-            font-weight: bold;
-        }
+                div ul, div ol {
+                    margin-bottom: 2em;
+                    padding-left: 40px;
+                }
 
-        /* Markdown specific styles */
-        div pre {
-            background-color: var(--code-bg);
-            border: 1px solid var(--border-color);
-            border-left: 10px solid var(--secondary-color);
-            padding: 25px;
-            border-radius: 10px;
-            overflow-x: auto;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
-            font-size: 0.95em;
-            line-height: 1.7;
-            margin-bottom: 2.5em;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.03);
-        }
+                div ul li, div ol li {
+                    margin-bottom: 1em;
+                    color: var(--text-color);
+                    font-size: 1.05em;
+                }
 
-        div code {
-            background-color: var(--code-inline-bg);
-            padding: 5px 9px;
-            border-radius: 5px;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
-            color: var(--primary-color);
-            white-space: nowrap;
-        }
+                /* Header and Footer */
+                .report-header {
+                    text-align: center;
+                    margin-bottom: 60px;
+                    padding-bottom: 30px;
+                    border-bottom: 1px solid var(--border-color);
+                }
 
-        div blockquote {
-            border-left: 8px solid var(--accent-color);
-            margin: 2.5em 0;
-            padding: 1.2em 30px;
-            background-color: var(--blockquote-bg);
-            color: var(--text-color);
-            font-style: italic;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            line-height: 1.8;
-        }
+                .report-header h1 {
+                    font-size: 4.2em;
+                    color: var(--primary-color);
+                    margin-bottom: 20px;
+                    border-bottom: none;
+                    padding-bottom: 0;
+                    background: none; /* Remove gradient for header in this context */
+                    -webkit-background-clip: unset;
+                    -webkit-text-fill-color: unset;
+                    text-shadow: none;
+                }
 
-        div ul, div ol {
-            margin-bottom: 2em;
-            padding-left: 40px;
-        }
+                .report-header p {
+                    font-size: 1.4em;
+                    color: var(--light-text-color);
+                    margin-top: 0;
+                    line-height: 1.5;
+                }
 
-        div ul li, div ol li {
-            margin-bottom: 1em;
-            color: var(--text-color);
-            font-size: 1.05em;
-        }
+                .report-footer {
+                    text-align: center;
+                    margin-top: 70px;
+                    padding-top: 30px;
+                    border-top: 1px solid var(--border-color);
+                    font-size: 1em;
+                    color: var(--light-text-color);
+                }
 
-        /* Header and Footer */
-        .report-header {
-            text-align: center;
-            margin-bottom: 60px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid var(--border-color);
-        }
+                /* Responsive adjustments */
+                @media (max-width: 768px) {
+                    body {
+                        padding: 15px;
+                    }
+                    .container {
+                        margin: 0;
+                        padding: 30px 25px;
+                        border-radius: 8px;
+                    }
+                    h1 { font-size: 3em; margin-bottom: 30px; padding-bottom: 20px; }
+                    h2 { font-size: 2.2em; margin-top: 2.5em; }
+                    h3 { font-size: 1.8em; margin-top: 2em; }
+                    p { font-size: 1em; margin-bottom: 1.5em; }
+                    .chart-container {
+                        height: 350px;
+                        padding: 25px;
+                        margin-bottom: 30px;
+                    }
+                    th, td {
+                        padding: 12px 15px;
+                        font-size: 0.9em;
+                    }
+                    .references {
+                        margin-top: 50px;
+                        padding-top: 30px;
+                    }
+                    .references h3 {
+                        font-size: 1.8em;
+                        margin-bottom: 20px;
+                    }
+                    .references li {
+                        font-size: 0.95em;
+                        padding-left: 25px;
+                    }
+                    div pre {
+                        padding: 20px;
+                        font-size: 0.85em;
+                    }
+                    div code {
+                        font-size: 0.8em;
+                    }
+                    div blockquote {
+                        padding: 1em 20px;
+                    }
+                    div ul, div ol {
+                        padding-left: 30px;
+                    }
+                }
 
-        .report-header h1 {
-            font-size: 4.2em;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            border-bottom: none;
-            padding-bottom: 0;
-            background: none; /* Remove gradient for header in this context */
-            -webkit-background-clip: unset;
-            -webkit-text-fill-color: unset;
-            text-shadow: none;
-        }
-
-        .report-header p {
-            font-size: 1.4em;
-            color: var(--light-text-color);
-            margin-top: 0;
-            line-height: 1.5;
-        }
-
-        .report-footer {
-            text-align: center;
-            margin-top: 70px;
-            padding-top: 30px;
-            border-top: 1px solid var(--border-color);
-            font-size: 1em;
-            color: var(--light-text-color);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            body {
-                padding: 15px;
-            }
-            .container {
-                margin: 0;
-                padding: 30px 25px;
-                border-radius: 8px;
-            }
-            h1 { font-size: 3em; margin-bottom: 30px; padding-bottom: 20px; }
-            h2 { font-size: 2.2em; margin-top: 2.5em; }
-            h3 { font-size: 1.8em; margin-top: 2em; }
-            p { font-size: 1em; margin-bottom: 1.5em; }
-            .chart-container {
-                height: 350px;
-                padding: 25px;
-                margin-bottom: 30px;
-            }
-            th, td {
-                padding: 12px 15px;
-                font-size: 0.9em;
-            }
-            .references {
-                margin-top: 50px;
-                padding-top: 30px;
-            }
-            .references h3 {
-                font-size: 1.8em;
-                margin-bottom: 20px;
-            }
-            .references li {
-                font-size: 0.95em;
-                padding-left: 25px;
-            }
-            div pre {
-                padding: 20px;
-                font-size: 0.85em;
-            }
-            div code {
-                font-size: 0.8em;
-            }
-            div blockquote {
-                padding: 1em 20px;
-            }
-            div ul, div ol {
-                padding-left: 30px;
-            }
-        }
-
-        @media print {
-            body {
-                background-color: #fff;
-                padding: 0;
-                margin: 0;
-            }
-            .container {
-                box-shadow: none;
-                border: none;
-                margin: 0;
-                padding: 0;
-                max-width: none;
-            }
-            table, pre, .chart-container, blockquote {
-                page-break-inside: avoid;
-            }
-            h1, h2, h3, h4, h5, h6 {
-                page-break-after: avoid;
-            }
-            .report-footer {
-                page-break-before: always;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="report-header">
-            <h1>Portfolio Analysis Report</h1>
-            <p>Detailed analysis generated by the LangGraph agent.</p>
-            <p>Date: {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
-        </div>
-{% for section in report_data %}
-            <h2>{{ section.section }}</h2>
-            {% if section.current_section_sub_sections %} {# Use current_section_sub_sections for structured content #}
-                {% for sub_section in section.current_section_sub_sections %}
-                    <h3>{{ sub_section.title }}</h3>
+                @media print {
+                    body {
+                        background-color: #fff;
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .container {
+                        box-shadow: none;
+                        border: none;
+                        margin: 0;
+                        padding: 0;
+                        max-width: none;
+                    }
+                    table, pre, .chart-container, blockquote {
+                        page-break-inside: avoid;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        page-break-after: avoid;
+                    }
+                    .report-footer {
+                        page-break-before: always;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container-fluid py-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h1 class="card-title text-center display-4 fw-bold text-primary mb-3">Portfolio Analysis Report</h1>
+                        <p class="card-text text-center text-muted">Date: {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+        {% for section in report_data %}
+            
+            <h2 class="text-secondary border-bottom pb-2 mb-4">{{ section.section }}</h2>
+                                   
+            {% if section.key_highlights %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title text-center text-primary mb-4">Key Highlights: {{ section.section }}</h3>
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                            {% for highlight in section.key_highlights %}
+                                <div class="col">
+                                    <div class="card h-100 shadow-sm border-0">
+                                        <div class="card-body d-flex align-items-start">
+                                            <p class="card-text flex-grow-1 mb-0">{{ highlight }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+                                   
+            {% if section.sub_sections %} {# Use sub_sections for structured content #}
+                {% for sub_section in section.sub_sections %}
+                    <h3 class="text-primary mt-4">{{ sub_section.title }}</h3>
                     <div>{{ sub_section.content | markdown_to_html }}</div> {# Apply markdown filter here if content might have markdown #}
                 {% endfor %}
             {% elif section.content %} {# Fallback to section.content if no structured sub_sections #}
                 <div>{{ section.content | markdown_to_html }}</div> {# Apply markdown filter #}
             {% endif %}
 
-            {% if section.tabular_data %}
-                <h3>{{ section.tabular_data.title }}</h3>
-                <div style="overflow-x: auto;"> {# Add responsive wrapper for tables #}
-                    <table>
-                        <thead>
+            {% if section.tabular_data and section.tabular_data is mapping and section.tabular_data.rows %}
+                <h3 class="text-primary mt-4">{{ section.tabular_data.title }}</h3>
+                <div class="table-responsive mb-5"> {# Add responsive wrapper for tables #}
+                    <table class="table table-striped table-hover table-bordered shadow-sm rounded-3 overflow-hidden">
+                        <thead class="table-dark">
                             <tr>
                                 {% for header in section.tabular_data.rows[0].keys() %}
-                                    <th>{{ header }}</th>
+                                    <th scope="col">{{ header }}</th>
                                 {% endfor %}
                             </tr>
                         </thead>
@@ -454,12 +388,14 @@ def generate_html_report(json_report_path: str, output_html_path: str):
             {% if section.graph_specs %}
                 {% for graph_spec in section.graph_specs %}
                     {% if graph_spec.type != 'none' %}
-                        <h3>{{ graph_spec.title }}</h3>
+                        <h3 class="text-primary mt-4">{{ graph_spec.title }}</h3>
                         {% if graph_spec.type == 'textual_description' %}
                             <p>{{ graph_spec.data }}</p>
                         {% else %}
-                            <div class="chart-container">
-                                <canvas id="chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
+                            <div class="card mb-5 shadow-sm chart-container">
+                                <div class="card-body">
+                                    <canvas id="chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
+                                </div>
                             </div>
                             <script>
                                 document.addEventListener('DOMContentLoaded', function() {
@@ -480,21 +416,21 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                                                         size: 18,
                                                         weight: 'bold'
                                                     },
-                                                    color: 'var(--text-color)'
+                                                    color: '#34495e' // text-color
                                                 },
                                                 legend: {
                                                     labels: {
                                                         font: {
                                                             size: 14
                                                         },
-                                                        color: 'var(--light-text-color)'
+                                                        color: '#7f8c8d' // light-text-color
                                                     }
                                                 }
                                             },
                                             scales: {
                                                 x: {
                                                     ticks: {
-                                                        color: 'var(--light-text-color)',
+                                                        color: '#7f8c8d', // light-text-color
                                                         font: {
                                                             size: 12
                                                         }
@@ -505,7 +441,7 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                                                 },
                                                 y: {
                                                     ticks: {
-                                                        color: 'var(--light-text-color)',
+                                                        color: '#7f8c8d', // light-text-color
                                                         font: {
                                                             size: 12
                                                         }
@@ -518,7 +454,7 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                                                     type: 'linear',
                                                     position: 'left',
                                                     ticks: {
-                                                        color: 'var(--secondary-color)',
+                                                        color: '#3498db', // secondary-color
                                                         font: {
                                                             size: 12
                                                         }
@@ -532,7 +468,7 @@ def generate_html_report(json_report_path: str, output_html_path: str):
                                                     type: 'linear',
                                                     position: 'right',
                                                     ticks: {
-                                                        color: 'var(--accent-color)',
+                                                        color: '#e74c3c', // accent-color
                                                         font: {
                                                             size: 12
                                                         }
@@ -552,23 +488,30 @@ def generate_html_report(json_report_path: str, output_html_path: str):
             {% endif %}
 
             {% if False and section.references %}
-                <div class="references">
-                    <h3>References</h3>
-                    <ul>
-                        {% for ref in section.references %}
-                            <li>{{ ref.document }}: {{ ref.location }}</li>
-                        {% endfor %}
-                    </ul>
+                <div class="card mt-5 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title text-secondary text-center mb-4">References</h3>
+                        <ul class="list-unstyled ps-4">
+                            {% for ref in section.references %}
+                                <li class="mb-3 text-muted">
+                                    <i class="bi bi-dot text-accent me-2"></i>
+                                    {{ ref.document }}: {{ ref.location }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             {% endif %}
         {% endfor %}
-        <div class="report-footer">
+        <div class="text-center mt-5 pt-4 border-top text-muted">
             <p>&copy; {{ datetime.now().year }} LangGraph Agent. All rights reserved.</p>
         </div>
     </div>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
-        """)
+""")
 
         # Render the template
         html_content = template.render(report_data=report_data, datetime=datetime)

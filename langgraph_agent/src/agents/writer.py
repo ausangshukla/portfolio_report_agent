@@ -159,6 +159,7 @@ class WriterNode:
                 "current_section_content": markdown_content_for_review, # Update current_section_content with markdown
                 "current_section_sub_sections": [s.dict() for s in rewritten_sub_sections], # Store structured sub-sections as dictionaries
                 "current_section_references": updated_references, # Store references separately
+                "key_highlights": critique.get("key_highlights", []), # Pass key_highlights from critique
                 "loop_count": state.get("loop_count", 0) + 1, # Increment loop_count here
                 "messages": state.get("messages", []) + [
                     BaseMessage(content=f"WriterNode: Section '{current_section_title}' rewritten.", type="tool_output")
