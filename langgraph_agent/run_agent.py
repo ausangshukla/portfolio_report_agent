@@ -52,38 +52,38 @@ def main():
             "include_graphs": True,
             "graph_instructions": ""
         },
-        {
-            "name": "Overview",
-            "section_instructions": "Provide a brief overview of the company, including its history, mission, and key products or services. Also include founder and key management.",
-            "include_table": True,
-            "table_instructions": "",
-            "include_graphs": False,
-            "graph_instructions": ""
-        },
-        {
-            "name": "Strategic Insights",
-            "section_instructions": "Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives. Do not generate markdown tables, just text",
-            "include_table": False,
-            "table_instructions": "",
-            "include_graphs": True,
-            "graph_instructions": ""
-        },
-        {
-            "name": "Financial Review",
-            "section_instructions": "Analyze the financial performance of the company, including revenue, profit margins, and key financial ratios. Do not generate markdown tables, just text.",
-            "include_table": True,
-            "table_instructions": "",
-            "include_graphs": True,
-            "graph_instructions": ""
-        },
-        {
-            "name": "Risks",
-            "section_instructions": "Identify and analyze the key risks facing the company, including market, operational, and financial risks.",
-            "include_table": True,
-            "table_instructions": "", 
-            "include_graphs": False,
-            "graph_instructions": ""
-        }
+        # {
+        #     "name": "Overview",
+        #     "section_instructions": "Provide a brief overview of the company, including its history, mission, and key products or services. Also include founder and key management.",
+        #     "include_table": True,
+        #     "table_instructions": "",
+        #     "include_graphs": False,
+        #     "graph_instructions": ""
+        # },
+        # {
+        #     "name": "Strategic Insights",
+        #     "section_instructions": "Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives. Do not generate markdown tables, just text",
+        #     "include_table": False,
+        #     "table_instructions": "",
+        #     "include_graphs": True,
+        #     "graph_instructions": ""
+        # },
+        # {
+        #     "name": "Financial Review",
+        #     "section_instructions": "Analyze the financial performance of the company, including revenue, profit margins, and key financial ratios. Do not generate markdown tables, just text.",
+        #     "include_table": True,
+        #     "table_instructions": "",
+        #     "include_graphs": True,
+        #     "graph_instructions": ""
+        # },
+        # {
+        #     "name": "Risks",
+        #     "section_instructions": "Identify and analyze the key risks facing the company, including market, operational, and financial risks.",
+        #     "include_table": True,
+        #     "table_instructions": "", 
+        #     "include_graphs": False,
+        #     "graph_instructions": ""
+        # }
     ]
 
     # Initialize and run the graph
