@@ -292,6 +292,7 @@
     </style>
 </head>
 <body>
+    {% set global_chart_index = [0] %} {# Initialize a mutable list to hold the global index #}
     <div class="container-fluid py-4">
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
@@ -301,7 +302,7 @@
         </div>
 {% for section in report_data %}
     {% set section_index = loop.index %}
-    <h2 class="text-secondary border-bottom pb-2 mb-4">{{ section.section }}</h2>
+    <h2 class="text-secondary border-bottom pb-2 mb-4">{{ section.name }} {{loop.index}}</h2>
                            
     {% if section.key_highlights %}
         {% set section = section %} {# Pass section explicitly if needed in _key_highlights.html #}
@@ -327,8 +328,10 @@
     {% if section.graph_specs %}
         {% for graph_spec in section.graph_specs %}
             {% if graph_spec.type != 'none' %}
+                {% set _ = global_chart_index.append(global_chart_index.pop() + 1) %} {# Increment the global index #}
                 {% set widget = graph_spec %}
-                {% include 'templates/widgets/_chart.html' %}
+                {% set chart_loop_index = global_chart_index[0] %} {# Set chart_loop_index in the current scope #}
+                {% include 'templates/widgets/_chart.html' with context %} {# Pass current context to the included template #}
             {% endif %}
         {% endfor %}
     {% endif %}

@@ -2,12 +2,12 @@
     <h3 class="text-secondary mt-4">{{ widget.title }}</h3>
     <div class="card mb-5 shadow-sm chart-container">
         <div class="card-body">
-            <canvas id="chart-{{ section_index }}-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
+            <canvas id="chart-{{ section_index }}-{{ section.name | replace(' ', '-') }}-{{ chart_loop_index }}"></canvas>
         </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var ctx = document.getElementById('chart-{{ section_index }}-{{ section.section | replace(' ', '-') }}-{{ loop.index }}').getContext('2d');
+            var ctx = document.getElementById('chart-{{ section_index }}-{{ section.name | replace(' ', '-') }}-{{ chart_loop_index }}').getContext('2d');
             var chartData = {{ widget.data | tojson }};
             var chartType = "{{ widget.type }}";
             new Chart(ctx, {

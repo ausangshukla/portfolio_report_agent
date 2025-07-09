@@ -31,7 +31,7 @@ class GraphGeneratorNode:
 
             Instructions:
             - Analyze the content and tabular data for trends, comparisons, or distributions.
-            - Suggest a graph type that best represents the identified data.
+            - Suggest a graph type that best represents the identified data. Never use stacked_bar
             - Provide the data in a structured format suitable for the chosen graph type.
             - The output MUST be a valid JSON array.
 
