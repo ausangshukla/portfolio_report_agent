@@ -200,6 +200,7 @@ class PortfolioAnalysisGraph:
             "current_section_instruction": None, # The instruction for the current section.
             "loop_count": 0, # Tracks review iterations for the current section.
             "critique": None, # Stores feedback from the reviewer for the writer.
+            "key_highlights": [], # Initialize key_highlights
             "current_section_sub_sections": [], # New: Initialize sub_sections
             "tabular_data": None, # Stores generated tabular data for the current section.
             "graph_specs": [], # Stores generated graph specifications for the current section (now a list).
@@ -216,6 +217,7 @@ class PortfolioAnalysisGraph:
             current_section_state["current_section"] = section_title
             current_section_state["current_section_instruction"] = section_instruction
             current_section_state["critique"] = None # Reset critique for each new section.
+            current_section_state["key_highlights"] = [] # Reset key_highlights for each new section.
             current_section_state["loop_count"] = 0 # Reset loop count for each new section.
 
             # Run the graph for the current section
@@ -242,6 +244,7 @@ class PortfolioAnalysisGraph:
                 "content": final_state_after_stream.get("current_section_content", ""),
                 "sub_sections": final_state_after_stream.get("current_section_sub_sections", []),
                 "references": final_state_after_stream.get("current_section_references", []),
+                "key_highlights": final_state_after_stream.get("key_highlights", []), # Add key_highlights to the final section
                 "tabular_data": final_state_after_stream.get("tabular_data", None),
                 "graph_specs": final_state_after_stream.get("graph_specs", [])
             }

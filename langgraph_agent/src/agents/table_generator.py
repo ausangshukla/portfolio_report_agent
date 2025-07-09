@@ -13,7 +13,7 @@ class TableGeneratorNode:
         self.parser = JsonOutputParser()
         self.prompt = PromptTemplate(
             template="""You are an expert financial analyst, skilled at extracting, summarizing, and presenting complex financial and business information in clear, concise, and well-structured tabular formats.
-            Given the following documents and the current section content, generate highly relevant and insightful tabular data.
+            Given the following documents and the current section content, generate highly relevant and insightful tabular data with not more than 8 rows.
             The table should be in JSON format, with a 'title' and 'rows' key.
             Each row should be a dictionary where keys are column headers.
 
