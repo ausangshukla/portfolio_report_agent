@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import sys # Import sys to access command-line arguments
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI # Example LLM
 from src.graphs.main_graph import PortfolioAnalysisGraph
@@ -10,7 +11,17 @@ from src.utils.report_generator import generate_html_report
 def main():
     """
     Main function to run the portfolio analysis agent.
+    It now accepts a folder name as a command-line argument to specify
+    which data folder to load documents from.
     """
+    # Check for command-line arguments
+    if len(sys.argv) < 2:
+        print("Usage: poetry run python run_agent.py <folder_name>")
+        print("Please provide the name of the folder within 'langgraph_agent/data' to analyze.")
+        return
+    
+    folder_name = sys.argv[1]
+
     # Load environment variables from .env file
     load_dotenv()
 
@@ -27,12 +38,17 @@ def main():
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-preview-05-20", google_api_key=google_api_key)
 
     # Define the path to your portfolio documents
-    # For demonstration, we'll use a dummy folder.
-    # In a real scenario, this would be your actual data folder.
-    data_folder = "langgraph_agent/data" # Corrected path to data folder
+    # Construct the path to your portfolio documents using the provided folder name
+    base_data_path = "langgraph_agent/data"
+    data_folder = os.path.join(base_data_path, folder_name)
 
-    # Create a dummy data folder and some files for testing if they don't exist
-    os.makedirs(data_folder, exist_ok=True)
+    # Ensure the specified data folder exists
+    if not os.path.exists(data_folder):
+        print(f"Error: Data folder '{data_folder}' not found.")
+        print("Please ensure the folder exists within 'langgraph_agent/data'.")
+        return
+
+    # The following lines for creating dummy files are commented out as they are not needed
     # if not os.path.exists(os.path.join(data_folder, "sample_report.txt")):
     #     with open(os.path.join(data_folder, "sample_report.txt"), "w") as f:
     #         f.write("This is a sample annual report for Company X. Revenue was $100M in 2023. Profit was $20M. Key risks include market volatility. Strategic insights: focus on innovation.")
@@ -46,7 +62,7 @@ def main():
     sections_to_analyze = [
         {
             "name": "Executive Summary",
-            "section_instructions": "Highlight the key investment thesis for the company and summarize the main financial and operating metrics. Keep it terse and focused with sub_sections being one liners",
+            "section_instructions": "Highlight the key investment thesis for the company and summarize the main financial and operating metrics. Keep it terse and focused with sub_sections being 2-3 lines only",
             "include_table": True,
             "table_instructions": "",
             "include_graphs": True,

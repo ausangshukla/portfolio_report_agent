@@ -29,6 +29,9 @@ class GraphGeneratorNode:
             Current Section Content: {current_section_content}
             Tabular Data for Current Section (if available): {tabular_data}
 
+            Graph Instructions:
+            {graph_instructions}
+
             Instructions:
             - Analyze the content and tabular data for trends, comparisons, or distributions.
             - Suggest a graph type that best represents the identified data. Never use stacked_bar
@@ -68,7 +71,7 @@ class GraphGeneratorNode:
                 }}
             ]
             """,
-            input_variables=["documents", "current_section", "current_section_content", "tabular_data"],
+            input_variables=["documents", "current_section", "current_section_content", "tabular_data", "graph_instructions"],
         )
         self.chain = self.prompt | self.llm | self.parser
 
@@ -90,11 +93,16 @@ class GraphGeneratorNode:
         try:
             # Temporarily modify the chain to get raw LLM output before parsing
             raw_chain = self.prompt | self.llm
+            graph_instructions = state.get("graph_instructions", "Only generate graphs of the most important data")
+            if not graph_instructions.strip():
+                graph_instructions = "Only generate graphs of the most important data"
+
             raw_llm_output = raw_chain.invoke({
                 "documents": documents_content,
                 "current_section": current_section_title,
                 "current_section_content": current_section_content,
-                "tabular_data": tabular_data
+                "tabular_data": tabular_data,
+                "graph_instructions": graph_instructions
             })
             print(f"--- Debug: Type of raw_llm_output: {type(raw_llm_output)} ---")
             # print(f"--- Debug: Raw LLM Output: {raw_llm_output} ---")

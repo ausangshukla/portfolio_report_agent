@@ -13,7 +13,7 @@ class TableGeneratorNode:
         self.parser = JsonOutputParser()
         self.prompt = PromptTemplate(
             template="""You are an expert financial analyst, skilled at extracting, summarizing, and presenting complex financial and business information in clear, concise, and well-structured tabular formats.
-            Given the following documents and the current section content, generate highly relevant and insightful tabular data with not more than 8 rows.
+            Given the following documents and the current section content, generate highly relevant and insightful tabular data
             The table should be in JSON format, with a 'title' and 'rows' key.
             Each row should be a dictionary where keys are column headers.
 
@@ -22,6 +22,9 @@ class TableGeneratorNode:
 
             Current Section Title: {current_section}
             Current Section Content: {current_section_content}
+
+            Table Instructions:
+            {table_instructions}
 
             Instructions:
             - Focus on extracting key financial metrics, operational data, and comparative figures.
@@ -52,7 +55,7 @@ class TableGeneratorNode:
                 ]
             }}
             """,
-            input_variables=["documents", "current_section", "current_section_content"],
+            input_variables=["documents", "current_section", "current_section_content", "table_instructions"],
         )
         self.chain = self.prompt | self.llm | self.parser
 
@@ -64,12 +67,16 @@ class TableGeneratorNode:
         documents_content = "\n\n".join([doc["content"] for doc in state.get("documents", [])])
         current_section_content = state.get("current_section_content", "")
         current_section_title = state.get("current_section", "")
+        table_instructions = state.get("table_instructions", "Table should not have more than 8 rows.")
+        if not table_instructions.strip():
+            table_instructions = "Table should not have more than 8 rows."
 
         try:
             tabular_data = self.chain.invoke({
                 "documents": documents_content,
                 "current_section": current_section_title,
-                "current_section_content": current_section_content
+                "current_section_content": current_section_content,
+                "table_instructions": table_instructions
             })
             print(f"--- Table generated for '{current_section_title}' ---")
             # Append the generated table to the current section's content or a new field
