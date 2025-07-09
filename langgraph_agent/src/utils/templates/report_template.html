@@ -300,7 +300,7 @@
             </div>
         </div>
 {% for section in report_data %}
-    
+    {% set section_index = loop.index %}
     <h2 class="text-secondary border-bottom pb-2 mb-4">{{ section.section }}</h2>
                            
     {% if section.key_highlights %}
@@ -369,12 +369,12 @@
                 {% else %}
                     <div class="card mb-5 shadow-sm chart-container">
                         <div class="card-body">
-                            <canvas id="chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
+                            <canvas id="chart-{{ section_index }}-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
                         </div>
                     </div>
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            var ctx = document.getElementById('chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}').getContext('2d');
+                            var ctx = document.getElementById('chart-{{ section_index }}-{{ section.section | replace(' ', '-') }}-{{ loop.index }}').getContext('2d');
                             var chartData = {{ graph_spec.data | tojson }};
                             var chartType = "{{ graph_spec.type }}";
                             new Chart(ctx, {

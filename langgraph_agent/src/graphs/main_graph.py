@@ -48,6 +48,8 @@ class PortfolioAnalysisGraph:
         workflow.add_node("reviewer", self.reviewer_node.review)
         # "writer": Uses the WriterNode to rewrite content based on critique.
         workflow.add_node("writer", self.writer_node.rewrite)
+        # "table_graph_router": A router node to decide between table/graph generation.
+        workflow.add_node("table_graph_router", self._table_graph_router_node) # Use a dedicated method
         # "table_generator": Generates tabular data for the section.
         workflow.add_node("table_generator", self.table_generator_node.generate_table)
         # "graph_generator": Generates graph specifications for the section.
@@ -79,35 +81,57 @@ class PortfolioAnalysisGraph:
             "reviewer",
             self._decide_next_step_after_review,
             {
-                # If the decider returns "rewrite", transition to the "writer" node.
                 "rewrite": "writer",
-                # If the decider returns "table_generation", transition to the "table_generator" node.
-                "table_generation": "table_generator"
+                "generate_table_or_graph": "table_graph_router", # Transition to the new router node
+                END: END
             }
         )
 
-        # After the "writer" node runs, call the `_decide_next_step_after_writer` function.
-        # This function will return a string ("review" or "next_section").
         workflow.add_conditional_edges(
             "writer",
             self._decide_next_step_after_writer,
             {
-                # If the decider returns "review", transition back to the "reviewer" node for another loop.
                 "review": "reviewer",
-                # If the decider returns "table_generation", transition to the "table_generator" node.
-                "table_generation": "table_generator"
+                "generate_table_or_graph": "table_graph_router", # Transition to the new router node
+                END: END
             }
         )
 
-        # After the "table_generator" node runs, transition to the "graph_generator" node.
-        workflow.add_edge("table_generator", "graph_generator")
+        # After table_graph_router, decide whether to generate tables, graphs or end
+        workflow.add_conditional_edges(
+            "table_graph_router",
+            self._decide_table_or_graph_generation, # This function is now the decider for this edge
+            {
+                "table_generator": "table_generator",
+                "graph_generator": "graph_generator",
+                END: END
+            }
+        )
 
-        # After the "graph_generator" node runs, the current section's processing ends (END).
+        # After table generation, decide whether to generate graphs or end
+        workflow.add_conditional_edges(
+            "table_generator",
+            self._decide_after_table_generation,
+            {
+                "graph_generator": "graph_generator",
+                END: END # Directly use END
+            }
+        )
+
+        # After graph generation, the section ends
         workflow.add_edge("graph_generator", END)
 
         # Compile the workflow into a runnable LangGraph.
         # This prepares the graph for execution.
         return workflow.compile()
+
+    def _table_graph_router_node(self, state: AgentState) -> Dict[str, Any]:
+        """
+        A router node that simply passes the state through.
+        Its purpose is to act as a point for conditional edges.
+        """
+        print(f"--- Router: Entering table_graph_router for section '{state.get('current_section')}' ---")
+        return state # Return the current state to ensure it's always a dictionary
 
     def _decide_next_step_after_extraction(self, state: AgentState) -> str:
         """
@@ -129,14 +153,14 @@ class PortfolioAnalysisGraph:
         print(f"--- Decider: After ReviewerNode for section '{state.get('current_section')}' ---")
         critique = state.get("critique")
         loop_count = state.get("loop_count", 0)
-        print(f"Decider: Critique content after ReviewerNode: {critique}") # Debug print
+        # print(f"Decider: Critique content after ReviewerNode: {critique}") # Debug print
  
         if critique and (critique.get("expand_on") or critique.get("remove_or_rephrase")) and loop_count < self.max_review_loops:
-            print(f"Decider: Critique present for '{state.get('current_section')}'. Loops remaining ({loop_count}/{self.max_review_loops}). Proceeding to rewrite.")
+            print(f"--- Decider: Critique present for '{state.get('current_section')}'. Loops remaining ({loop_count}/{self.max_review_loops}). Proceeding to rewrite.")
             return "rewrite"
         else:
-            print(f"Decider: No actionable critique or max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to table generation.")
-            return "table_generation"
+            print(f"Decider: No actionable critique or max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to decide table/graph generation.")
+            return "generate_table_or_graph"
 
     def _decide_next_step_after_writer(self, state: AgentState) -> str:
         """
@@ -149,7 +173,7 @@ class PortfolioAnalysisGraph:
         """
         print(f"--- Decider: After WriterNode for section '{state.get('current_section')}' ---")
         loop_count = state.get("loop_count", 0)
-        print(f"Decider: Sub-sections after WriterNode: {state.get('current_section_sub_sections', [])}") # Debug print
+        # print(f"Decider: Sub-sections after WriterNode: {state.get('current_section_sub_sections', [])}") # Debug print
  
         # After writing, if there's still a need for review (e.g., max loops not reached), go back to reviewer.
         # Otherwise, proceed to table generation.
@@ -157,10 +181,43 @@ class PortfolioAnalysisGraph:
             print(f"Decider: Loops remaining for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to re-review.")
             return "review"
         else:
-            print(f"Decider: Max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to table generation.")
-            return "table_generation" # New transition to table generation
+            print(f"Decider: Max loops reached for '{state.get('current_section')}' ({loop_count}/{self.max_review_loops}). Proceeding to decide table/graph generation.")
+            return "generate_table_or_graph" # New transition to table/graph generation decider
 
-    def run_analysis(self, llm: Any, loaded_docs: List[Dict[str, Any]], sections: List[Dict[str, str]]):
+    def _decide_table_or_graph_generation(self, state: AgentState) -> str:
+        """
+        Decider function: Determines whether to generate a table, a graph, or end the section.
+        This is called after the review/writer loop is complete.
+        """
+        print(f"--- Decider: Deciding table/graph generation for section '{state.get('current_section')}' ---")
+        include_table = state.get("include_table", False)
+        include_graphs = state.get("include_graphs", False)
+
+        if include_table:
+            print(f"Decider: 'include_table' is True. Proceeding to table generation for '{state.get('current_section')}'.")
+            return "table_generator"
+        elif include_graphs:
+            print(f"Decider: 'include_graphs' is True. Proceeding to graph generation for '{state.get('current_section')}'.")
+            return "graph_generator"
+        else:
+            print(f"Decider: Neither table nor graph generation requested for '{state.get('current_section')}'. Ending section.")
+            return END
+
+    def _decide_after_table_generation(self, state: AgentState) -> str:
+        """
+        Decider function: Determines whether to generate a graph after table generation, or end the section.
+        """
+        print(f"--- Decider: After table generation for section '{state.get('current_section')}' ---")
+        include_graphs = state.get("include_graphs", False)
+
+        if include_graphs:
+            print(f"Decider: 'include_graphs' is True. Proceeding to graph generation for '{state.get('current_section')}'.")
+            return "graph_generator"
+        else:
+            print(f"Decider: 'include_graphs' is False. Ending section after table generation for '{state.get('current_section')}'.")
+            return END
+
+    def run_analysis(self, llm: Any, loaded_docs: List[Dict[str, Any]], sections: List[Dict[str, Any]]):
         """
         Executes the entire portfolio analysis process using the defined LangGraph.
         It initializes the agent state with pre-loaded documents, and then iteratively processes
@@ -196,8 +253,12 @@ class PortfolioAnalysisGraph:
             "documents": loaded_docs, # All loaded documents available to all nodes.
             "sections_to_process": sections, # List of sections to iterate through.
             "completed_sections": [], # Accumulates the final versions of processed sections.
-            "current_section": None, # The section title currently being worked on by the graph.
+            "current_section": None, # The section name currently being worked on by the graph.
             "current_section_instruction": None, # The instruction for the current section.
+            "include_table": False, # Whether to include a table for the current section.
+            "table_instructions": "", # Instructions for table generation.
+            "include_graphs": False, # Whether to include graphs for the current section.
+            "graph_instructions": "", # Instructions for graph generation.
             "loop_count": 0, # Tracks review iterations for the current section.
             "critique": None, # Stores feedback from the reviewer for the writer.
             "key_highlights": [], # Initialize key_highlights
@@ -209,13 +270,22 @@ class PortfolioAnalysisGraph:
 
         # Iterate through each section defined in `sections_to_analyze`.
         for section_info in sections:
-            section_title = section_info["title"]
-            section_instruction = section_info["instruction"]
-            print(f"\n--- Starting analysis for section: '{section_title}' with instruction: '{section_instruction}' ---")
+            section_name = section_info.get("name", "Untitled Section")
+            section_instructions = section_info.get("section_instructions", "")
+            include_table = section_info.get("include_table", False)
+            table_instructions = section_info.get("table_instructions", "")
+            include_graphs = section_info.get("include_graphs", False)
+            graph_instructions = section_info.get("graph_instructions", "")
+
+            print(f"\n--- Starting analysis for section: '{section_name}' with instruction: '{section_instructions}' ---")
             # Create a copy of the initial state for the current section's processing.
             current_section_state = initial_state.copy()
-            current_section_state["current_section"] = section_title
-            current_section_state["current_section_instruction"] = section_instruction
+            current_section_state["current_section"] = section_name
+            current_section_state["current_section_instruction"] = section_instructions
+            current_section_state["include_table"] = include_table
+            current_section_state["table_instructions"] = table_instructions
+            current_section_state["include_graphs"] = include_graphs
+            current_section_state["graph_instructions"] = graph_instructions
             current_section_state["critique"] = None # Reset critique for each new section.
             current_section_state["key_highlights"] = [] # Reset key_highlights for each new section.
             current_section_state["loop_count"] = 0 # Reset loop count for each new section.
@@ -223,6 +293,7 @@ class PortfolioAnalysisGraph:
             # Run the graph for the current section
             final_state_after_stream = None
             for i, s in enumerate(self.graph.stream(current_section_state)):
+                # print(f"--- Debug: Stream yielded 's' at step {i} for '{section_name}': {s} ---")
                 # LangGraph stream yields a dictionary where the key is the node name
                 # and the value is the state update from that node.
                 # We need to unwrap this to get the actual state update.
@@ -230,26 +301,30 @@ class PortfolioAnalysisGraph:
                 current_section_state.update(node_output)
                 # It's crucial to ensure final_state_after_stream is updated with the latest state
                 final_state_after_stream = current_section_state.copy() # Create a copy to avoid reference issues
-                print(f"--- Debug: State after stream step {i} for '{section_title}': {current_section_state} ---")
+                # print(f"--- Debug: State after stream step {i} for '{section_name}': {current_section_state} ---")
  
-            print(f"--- Debug: Final state after stream for '{section_title}': {final_state_after_stream} ---")
+            print(f"--- Debug: Final state after stream for '{section_name}': {final_state_after_stream} ---")
             print(f"--- Debug: current_section_content in final state: {final_state_after_stream.get('current_section_content', '')[:500]}... ---")
             print(f"--- Debug: current_section_sub_sections in final state: {final_state_after_stream.get('current_section_sub_sections', [])} ---")
 
             # After the graph for a single section completes (reaches END),
             # consolidate all relevant data for the current section and add it to completed_sections.
             finalized_section = {
-                "section": section_title,
-                "instruction": section_instruction, # Include the instruction in the finalized report
+                "name": section_name,
+                "section_instructions": section_instructions, # Include the instruction in the finalized report
                 "content": final_state_after_stream.get("current_section_content", ""),
                 "sub_sections": final_state_after_stream.get("current_section_sub_sections", []),
                 "references": final_state_after_stream.get("current_section_references", []),
                 "key_highlights": final_state_after_stream.get("key_highlights", []), # Add key_highlights to the final section
+                "include_table": include_table,
+                "table_instructions": table_instructions,
                 "tabular_data": final_state_after_stream.get("tabular_data", None),
+                "include_graphs": include_graphs,
+                "graph_instructions": graph_instructions,
                 "graph_specs": final_state_after_stream.get("graph_specs", [])
             }
             
-            print(f"--- Finalized section '{section_title}' ---")
+            print(f"--- Finalized section '{section_name}' ---")
             yield finalized_section
             
             # Update the overall `initial_state` with the finalized section.

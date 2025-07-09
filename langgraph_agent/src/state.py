@@ -37,6 +37,10 @@ class AgentState(TypedDict):
     completed_sections: List[Dict[str, Any]] # Each item will now include 'key_highlights'
     current_section: Optional[str]
     current_section_instruction: Optional[str]
+    include_table: bool # Added to control table generation
+    table_instructions: Optional[str] # Added for table generation instructions
+    include_graphs: bool # Added to control graph generation
+    graph_instructions: Optional[str] # Added for graph generation instructions
     loop_count: int
     critique: Optional[Dict[str, Any]]
     key_highlights: List[str] # Added key_highlights as a top-level field
