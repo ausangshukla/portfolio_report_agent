@@ -77,9 +77,11 @@ class TableGeneratorNode:
             # We might want to integrate this into 'completed_sections' later.
             
             # Return the tabular_data and ensure other relevant state variables are passed through
-            return {
+            result = {
                 "tabular_data": tabular_data
             }
+            print(f"--- TableGeneratorNode returning: {result} ---")
+            return result
 
         except Exception as e:
             print(f"Error generating table for section '{current_section_title}': {e}")

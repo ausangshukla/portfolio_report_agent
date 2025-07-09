@@ -292,6 +292,7 @@
     </style>
 </head>
 <body>
+    {% set global_chart_index = [0] %} {# Initialize a mutable list to hold the global index #}
     <div class="container-fluid py-4">
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
@@ -300,164 +301,37 @@
             </div>
         </div>
 {% for section in report_data %}
-    
-    <h2 class="text-secondary border-bottom pb-2 mb-4">{{ section.section }}</h2>
+    {% set section_index = loop.index %}
+    <h2 class="text-secondary border-bottom pb-2 mb-4">{{ section.name }} {{loop.index}}</h2>
                            
     {% if section.key_highlights %}
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-info text-white text-center py-3">
-                <h3 class="card-title mb-0 h4">Key Highlights: {{ section.section }}</h3>
-            </div>
-            <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    {% for highlight in section.key_highlights %}
-                        <div class="col">
-                            <div class="card h-100 shadow-sm border-0">
-                                <div class="card-header bg-light text-secondary fw-bold">
-                                    Highlight {{ loop.index }}
-                                </div>
-                                <div class="card-body d-flex align-items-start">
-                                    <p class="card-text flex-grow-1 mb-0">{{ highlight }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+        {% set section = section %} {# Pass section explicitly if needed in _key_highlights.html #}
+        {% include 'templates/widgets/_key_highlights.html' %}
     {% endif %}
                            
     {% if section.sub_sections %} {# Use sub_sections for structured content #}
         {% for sub_section in section.sub_sections %}
             <h3 class="text-secondary mt-4">{{ sub_section.title }}</h3>
-            <div>{{ sub_section.content | markdown_to_html }}</div> {# Apply markdown filter here if content might have markdown #}
+            {% set content = sub_section.content %}
+            {% include 'templates/widgets/_markdown.html' %} {# Pass sub_section.content as data to markdown widget #}
         {% endfor %}
     {% elif section.content %} {# Fallback to section.content if no structured sub_sections #}
-        <div>{{ section.content | markdown_to_html }}</div> {# Apply markdown filter #}
+        {% set content = section.content %}
+        {% include 'templates/widgets/_markdown.html' %} {# Pass section.content as data to markdown widget #}
     {% endif %}
 
     {% if section.tabular_data and section.tabular_data is mapping and section.tabular_data.rows %}
-        <h3 class="text-secondary mt-4">{{ section.tabular_data.title }}</h3>
-        <div class="table-responsive mb-5"> {# Add responsive wrapper for tables #}
-            <table class="table table-striped table-hover table-bordered shadow-sm rounded-3 overflow-hidden">
-                <thead class="table-dark">
-                    <tr>
-                        {% for header in section.tabular_data.rows[0].keys() %}
-                            <th scope="col">{{ header }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in section.tabular_data.rows %}
-                        <tr>
-                            {% for key, value in row.items() %}
-                                <td>{{ value if value is not none else '' }}</td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% set section = section %} {# Pass section explicitly if needed in _table.html #}
+        {% include 'templates/widgets/_table.html' %}
     {% endif %}
 
     {% if section.graph_specs %}
         {% for graph_spec in section.graph_specs %}
             {% if graph_spec.type != 'none' %}
-                <h3 class="text-secondary mt-4">{{ graph_spec.title }}</h3>
-                {% if graph_spec.type == 'textual_description' %}
-                    <p>{{ graph_spec.data }}</p>
-                {% else %}
-                    <div class="card mb-5 shadow-sm chart-container">
-                        <div class="card-body">
-                            <canvas id="chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}"></canvas>
-                        </div>
-                    </div>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            var ctx = document.getElementById('chart-{{ section.section | replace(' ', '-') }}-{{ loop.index }}').getContext('2d');
-                            var chartData = {{ graph_spec.data | tojson }};
-                            var chartType = "{{ graph_spec.type }}";
-                            new Chart(ctx, {
-                                type: chartType,
-                                data: chartData,
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        title: {
-                                            display: true,
-                                            text: "{{ graph_spec.title }}",
-                                            font: {
-                                                size: 18,
-                                                weight: 'bold'
-                                            },
-                                            color: '#34495e' // text-color
-                                        },
-                                        legend: {
-                                            labels: {
-                                                font: {
-                                                    size: 14
-                                                },
-                                                color: '#7f8c8d' // light-text-color
-                                            }
-                                        }
-                                    },
-                                    scales: {
-                                        x: {
-                                            ticks: {
-                                                color: '#7f8c8d', // light-text-color
-                                                font: {
-                                                    size: 12
-                                                }
-                                            },
-                                            grid: {
-                                                color: 'rgba(0, 0, 0, 0.05)'
-                                            }
-                                        },
-                                        y: {
-                                            ticks: {
-                                                color: '#7f8c8d', // light-text-color
-                                                font: {
-                                                    size: 12
-                                                }
-                                            },
-                                            grid: {
-                                                color: 'rgba(0, 0, 0, 0.05)'
-                                            }
-                                        },
-                                        'y-axis-1': { // For primary Y-axis
-                                            type: 'linear',
-                                            position: 'left',
-                                            ticks: {
-                                                color: '#3498db', // secondary-color
-                                                font: {
-                                                    size: 12
-                                                }
-                                            },
-                                            grid: {
-                                                drawOnChartArea: false, // Only draw grid lines for the first Y-axis
-                                                color: 'rgba(0, 0, 0, 0.05)'
-                                            }
-                                        },
-                                        'y-axis-2': { // For secondary Y-axis (e.g., percentages)
-                                            type: 'linear',
-                                            position: 'right',
-                                            ticks: {
-                                                color: '#e74c3c', // accent-color
-                                                font: {
-                                                    size: 12
-                                                }
-                                            },
-                                            grid: {
-                                                drawOnChartArea: false // Do not draw grid lines for the second Y-axis
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        });
-                    </script>
-                {% endif %}
+                {% set _ = global_chart_index.append(global_chart_index.pop() + 1) %} {# Increment the global index #}
+                {% set widget = graph_spec %}
+                {% set chart_loop_index = global_chart_index[0] %} {# Set chart_loop_index in the current scope #}
+                {% include 'templates/widgets/_chart.html' with context %} {# Pass current context to the included template #}
             {% endif %}
         {% endfor %}
     {% endif %}

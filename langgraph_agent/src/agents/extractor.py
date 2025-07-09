@@ -107,7 +107,7 @@ class ExtractorNode:
             # 2. Invoke the LLM
             prompt_messages = self.prompt.format_messages(**extraction_input)
             raw_llm_output = self.llm.invoke(prompt_messages)
-            print(f"ExtractorNode: Raw LLM output for '{current_section_title}':\n---\n{raw_llm_output.content[:1]}\n---")
+            # print(f"ExtractorNode: Raw LLM output for '{current_section_title}':\n---\n{raw_llm_output.content[:1]}\n---")
 
             # 3. Clean the LLM output
             cleaned_output = raw_llm_output.content.strip()

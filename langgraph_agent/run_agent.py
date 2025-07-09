@@ -44,22 +44,47 @@ def main():
     # Each section can now have a title and an instruction for the LLM, separated by a colon.
     # The part before the colon is the section title, and the part after is the instruction.
     sections_to_analyze = [
-        "Executive Summary: Highlight the key investment thesis for the company and summarize the main financial and operating metrics. Keep it terse and focused with sub_sections being one liners",
-        "Overview: Provide a brief overview of the company, including its history, mission, and key products or services. Also include founder and key management. No graphs.",
-        "Strategic Insights: Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives.",
-        "Financial Review: Analyze the financial performance of the company, including revenue, profit margins, and key financial ratios.",
-        "Risks: Identify and analyze the key risks facing the company, including market, operational, and financial risks.",
-        # "Competition: Analyze the competitive landscape, including key competitors, market share, and competitive advantages. Provide a SWOT analysis."
+        {
+            "name": "Executive Summary",
+            "section_instructions": "Highlight the key investment thesis for the company and summarize the main financial and operating metrics. Keep it terse and focused with sub_sections being one liners",
+            "include_table": True,
+            "table_instructions": "",
+            "include_graphs": True,
+            "graph_instructions": ""
+        },
+        {
+            "name": "Overview",
+            "section_instructions": "Provide a brief overview of the company, including its history, mission, and key products or services. Also include founder and key management.",
+            "include_table": True,
+            "table_instructions": "",
+            "include_graphs": False,
+            "graph_instructions": ""
+        },
+        {
+            "name": "Strategic Insights",
+            "section_instructions": "Summarize the strategic insights from the annual report, focusing on the company's long-term vision and strategic initiatives. Do not generate markdown tables, just text",
+            "include_table": False,
+            "table_instructions": "",
+            "include_graphs": True,
+            "graph_instructions": ""
+        },
+        {
+            "name": "Financial Review",
+            "section_instructions": "Analyze the financial performance of the company, including revenue, profit margins, and key financial ratios. Do not generate markdown tables, just text.",
+            "include_table": True,
+            "table_instructions": "",
+            "include_graphs": True,
+            "graph_instructions": ""
+        },
+        {
+            "name": "Risks",
+            "section_instructions": "Identify and analyze the key risks facing the company, including market, operational, and financial risks.",
+            "include_table": True,
+            "table_instructions": "", 
+            "include_graphs": False,
+            "graph_instructions": ""
+        }
     ]
-
-    # Parse sections_to_analyze into a list of dictionaries with 'title' and 'instruction'
-    parsed_sections = []
-    for section_entry in sections_to_analyze:
-        if ":" in section_entry:
-            title, instruction = section_entry.split(":", 1)
-            parsed_sections.append({"title": title.strip(), "instruction": instruction.strip()})
-        else:
-            parsed_sections.append({"title": section_entry.strip(), "instruction": ""})
 
     # Initialize and run the graph
     print("Initializing Portfolio Analysis Agent...")
@@ -90,7 +115,7 @@ def main():
         f.write("[\n") # Start JSON array
         
         first_section = True
-        for section_report in agent_graph.run_analysis(llm, loaded_docs, parsed_sections):
+        for section_report in agent_graph.run_analysis(llm, loaded_docs, sections_to_analyze):
             print(f"--- Debug: Section report yielded to run_agent.py: {section_report} ---")
             if not first_section:
                 f.write(",\n") # Add comma for subsequent sections

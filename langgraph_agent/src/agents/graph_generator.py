@@ -31,7 +31,7 @@ class GraphGeneratorNode:
 
             Instructions:
             - Analyze the content and tabular data for trends, comparisons, or distributions.
-            - Suggest a graph type that best represents the identified data.
+            - Suggest a graph type that best represents the identified data. Never use stacked_bar
             - Provide the data in a structured format suitable for the chosen graph type.
             - The output MUST be a valid JSON array.
 
@@ -84,8 +84,8 @@ class GraphGeneratorNode:
         current_section_references = state.get("current_section_references", []) # Get references from writer
 
         print(f"--- Debug: Input documents_content length: {len(documents_content)} ---")
-        print(f"--- Debug: Input current_section_content length: {len(current_section_content)} ---")
-        print(f"--- Debug: Input tabular_data: {tabular_data} ---")
+        # print(f"--- Debug: Input current_section_content length: {len(current_section_content)} ---")
+        # print(f"--- Debug: Input tabular_data: {tabular_data} ---")
 
         try:
             # Temporarily modify the chain to get raw LLM output before parsing
@@ -97,8 +97,8 @@ class GraphGeneratorNode:
                 "tabular_data": tabular_data
             })
             print(f"--- Debug: Type of raw_llm_output: {type(raw_llm_output)} ---")
-            print(f"--- Debug: Raw LLM Output: {raw_llm_output} ---")
-            print(f"--- Debug: Type of raw_llm_output.content: {type(raw_llm_output.content)} ---")
+            # print(f"--- Debug: Raw LLM Output: {raw_llm_output} ---")
+            # print(f"--- Debug: Type of raw_llm_output.content: {type(raw_llm_output.content)} ---")
             
             try:
                 graph_specs = self.parser.parse(raw_llm_output.content) # Parse the raw output, expecting a list
