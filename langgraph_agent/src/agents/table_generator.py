@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from ..state import AgentState
+from ..graphs.state import AgentState
 
 class TableGeneratorNode:
     """
@@ -87,7 +87,7 @@ class TableGeneratorNode:
             result = {
                 "tabular_data": tabular_data
             }
-            print(f"--- TableGeneratorNode returning: {result} ---")
+            # print(f"--- TableGeneratorNode returning: {result} ---")
             return result
 
         except Exception as e:

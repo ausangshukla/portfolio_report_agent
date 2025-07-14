@@ -35,11 +35,18 @@ def main():
 
     # gemini-2.5-pro-preview-06-05
     # gemini-2.5-flash-preview-05-20
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-preview-05-20", google_api_key=google_api_key)
+    # 
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-preview-05-20", google_api_key=google_api_key
+        # ,extra_body={
+        #     "config": {
+        #         "thinkingConfig": {"thinkingBudget": -1}  # keep dynamic thinking; 0 = off
+        #     }
+        # }
+    )
 
     # Define the path to your portfolio documents
     # Construct the path to your portfolio documents using the provided folder name
-    base_data_path = "langgraph_agent/data"
+    base_data_path = "data"
     data_folder = os.path.join(base_data_path, folder_name)
 
     # Ensure the specified data folder exists
@@ -62,7 +69,7 @@ def main():
     sections_to_analyze = [
         {
             "name": "Executive Summary",
-            "section_instructions": "Highlight the key investment thesis for the company and summarize the main financial and operating metrics. Keep it terse and focused with sub_sections being 2-3 lines only",
+            "section_instructions": "Highlight the key investment thesis for the company and summarize the main financial and operating metrics. Keep it focused with each sub_section being 3-4 lines only",
             "include_table": True,
             "table_instructions": "",
             "include_graphs": True,
@@ -132,7 +139,7 @@ def main():
         
         first_section = True
         for section_report in agent_graph.run_analysis(llm, loaded_docs, sections_to_analyze):
-            print(f"--- Debug: Section report yielded to run_agent.py: {section_report} ---")
+            # print(f"--- Debug: Section report yielded to run_agent.py: {section_report} ---")
             if not first_section:
                 f.write(",\n") # Add comma for subsequent sections
             

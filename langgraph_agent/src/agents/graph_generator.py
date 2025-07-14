@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from ..state import AgentState
+from ..graphs.state import AgentState
 
 class GraphGeneratorNode:
     """
@@ -111,7 +111,7 @@ class GraphGeneratorNode:
             try:
                 graph_specs = self.parser.parse(raw_llm_output.content) # Parse the raw output, expecting a list
                 print(f"--- Debug: Type of graph_specs: {type(graph_specs)} ---")
-                print(f"--- Graph specs generated for '{current_section_title}': {graph_specs} ---")
+                # print(f"--- Graph specs generated for '{current_section_title}': {graph_specs} ---")
                 
                 # Return the list of graph_specs and ensure other relevant state variables are passed through
                 return {

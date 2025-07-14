@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import BaseMessage # Added SystemMessage for context caching
 from langchain_google_genai import ChatGoogleGenerativeAI # Using Gemini
-from ..state import AgentState
+from .state import AgentState
 from ..agents.extractor import ExtractorNode
 from ..agents.table_generator import TableGeneratorNode
 from ..agents.graph_generator import GraphGeneratorNode
@@ -305,7 +305,7 @@ class PortfolioAnalysisGraph:
  
             print(f"--- Debug: Final state after stream for '{section_name}': {final_state_after_stream} ---")
             print(f"--- Debug: current_section_content in final state: {final_state_after_stream.get('current_section_content', '')[:500]}... ---")
-            print(f"--- Debug: current_section_sub_sections in final state: {final_state_after_stream.get('current_section_sub_sections', [])} ---")
+            # print(f"--- Debug: current_section_sub_sections in final state: {final_state_after_stream.get('current_section_sub_sections', [])} ---")
 
             # After the graph for a single section completes (reaches END),
             # consolidate all relevant data for the current section and add it to completed_sections.

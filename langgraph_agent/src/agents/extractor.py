@@ -4,7 +4,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.messages import BaseMessage
 from pydantic.v1 import BaseModel, Field
-from ..state import AgentState # Assuming AgentState is in src/state.py
+from ..graphs.state import AgentState # Assuming AgentState is in src/state.py
 import pdb;
 
 class SubSection(BaseModel):

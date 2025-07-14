@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.messages import BaseMessage
-from ..state import AgentState # Assuming AgentState is in src/state.py
+from ..graphs.state import AgentState # Assuming AgentState is in src/state.py
 
 class ReviewerNode:
     """
